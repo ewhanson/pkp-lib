@@ -79,6 +79,16 @@ abstract class Collector implements CollectorInterface
     }
 
     /**
+     * Limit results to submissions that contain any pub objects (e.g. publication and galley) with these statuses
+     *
+     * @param array|null $statuses One or more of DOI::STATUS_* constants
+     * @param bool $strict Whether null/empty values should count when considering Doi::STATUS_UNREGISTERED
+     *
+     * @return AppCollector
+     */
+    abstract public function filterByDoiStatusesIncludeSubObjects(?array $statuses, bool $strict = false): AppCollector;
+
+    /**
      * Limit results by submissions with these statuses
      *
      * @see \PKP\submissions\PKPSubmission::STATUS_
