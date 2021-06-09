@@ -351,6 +351,7 @@ class PKPHandler
             $this->_authorizationDecisionManager->setDecisionIfNoPolicyApplies(AuthorizationPolicy::AUTHORIZATION_DENY);
         }
 
+        \HookRegistry::call('PKPHandler::authorize', [$this, $request, &$args, $roleAssignments]);
         // Let the authorization decision manager take a decision.
         $decision = $this->_authorizationDecisionManager->decide();
         if ($decision == AuthorizationPolicy::AUTHORIZATION_PERMIT && (empty($this->_roleAssignments) || $this->_roleAssignmentsChecked)) {
