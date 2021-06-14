@@ -1,8 +1,8 @@
 <?php
 
 /**
- * @defgroup announcement Announcement
- * Implements announcements that can be presented to website visitors.
+ * @defgroup doi Doi
+ * Implements DOI used as persistent identifiers.
  */
 
 /**
@@ -26,6 +26,11 @@ use PKP\core\DataObject;
 
 class Doi extends DataObject
 {
+    public const STATUS_UNREGISTERED = 'unregistered';
+    public const STATUS_SUBMITTED = 'submitted';
+    public const STATUS_ERROR = 'error';
+    public const STATUS_STALE = 'stale';
+
     //
     // Get/set methods
     //

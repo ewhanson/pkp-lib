@@ -32,4 +32,9 @@ class Repo
     {
         return App::make(\PKP\announcement\Repository::class);
     }
+
+    public static function doi(): \PKP\doi\Repository
+    {
+        return App::make(\PKP\doi\Repository::class);
+    }
 }
