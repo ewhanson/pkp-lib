@@ -36,6 +36,12 @@
 						@set="set"
 					/>
 				</tab>
+                <tab id="dois" label="{translate key="manager.dois.title"}">
+                    <pkp-form
+                        v-bind="components.{PKP\components\forms\context\PKPDoiSettingsForm::FORM_DOI_SETTINGS}"
+                        @set="set"
+                    />
+                </tab>
 				<tab id="components" label="{translate key="grid.genres.title.short"}">
 					{capture assign=genresUrl}{url router=\PKP\core\PKPApplication::ROUTE_COMPONENT component="grid.settings.genre.GenreGridHandler" op="fetchGrid" escape=false}{/capture}
 					{load_url_in_div id="genresGridContainer" url=$genresUrl}

@@ -13,11 +13,13 @@
  * @brief Base class for all management page handlers.
  */
 
+use APP\components\forms\context\DoiSettingsForm;
 use APP\facades\Repo;
 use APP\file\PublicFileManager;
 use APP\handler\Handler;
 use APP\template\TemplateManager;
 
+use PKP\components\forms\context\PKPDoiSettingsForm;
 use PKP\security\authorization\ContextAccessPolicy;
 use PKP\security\Role;
 use PKP\site\VersionCheck;
@@ -245,6 +247,7 @@ class ManagementHandler extends Handler
 
         $authorGuidelinesForm = new \PKP\components\forms\context\PKPAuthorGuidelinesForm($contextApiUrl, $locales, $context);
         $metadataSettingsForm = new \APP\components\forms\context\MetadataSettingsForm($contextApiUrl, $context);
+        $doiSettingsForm = new DoiSettingsForm($contextApiUrl, $locales, $context);
         $disableSubmissionsForm = new \PKP\components\forms\context\PKPDisableSubmissionsForm($contextApiUrl, $locales, $context);
         $emailSetupForm = new \PKP\components\forms\context\PKPEmailSetupForm($contextApiUrl, $locales, $context);
         $reviewGuidanceForm = new \APP\components\forms\context\ReviewGuidanceForm($contextApiUrl, $locales, $context);
@@ -268,6 +271,7 @@ class ManagementHandler extends Handler
             'components' => [
                 FORM_AUTHOR_GUIDELINES => $authorGuidelinesForm->getConfig(),
                 FORM_METADATA_SETTINGS => $metadataSettingsForm->getConfig(),
+                PKPDoiSettingsForm::FORM_DOI_SETTINGS => $doiSettingsForm->getConfig(),
                 FORM_DISABLE_SUBMISSIONS => $disableSubmissionsForm->getConfig(),
                 FORM_EMAIL_SETUP => $emailSetupForm->getConfig(),
                 FORM_REVIEW_GUIDANCE => $reviewGuidanceForm->getConfig(),
