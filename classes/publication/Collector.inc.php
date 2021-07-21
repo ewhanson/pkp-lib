@@ -27,6 +27,9 @@ class Collector implements CollectorInterface
     public $contextIds = null;
 
     /** @var array|null */
+    public $doiIds = null;
+
+    /** @var array|null */
     public $submissionIds = null;
 
     /** @var int */
@@ -46,6 +49,15 @@ class Collector implements CollectorInterface
     public function filterByContextIds(array $contextIds): self
     {
         $this->contextIds = $contextIds;
+        return $this;
+    }
+
+    /**
+     * Filter by DOIs
+     */
+    public function filterByDoiIds(array $doiIds): self
+    {
+        $this->doiIds = $doiIds;
         return $this;
     }
 
@@ -92,6 +104,10 @@ class Collector implements CollectorInterface
 
         if (is_array($this->submissionIds)) {
             $qb->whereIn('p.submission_id', $this->submissionIds);
+        }
+
+        if (is_array($this->doiIds)) {
+            $qb->whereIn('p.doi_id', $this->doiIds);
         }
 
         if (!empty($this->count)) {

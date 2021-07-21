@@ -21,6 +21,7 @@ use PKP\context\Context;
 class PKPDoiSettingsForm extends FormComponent
 {
     public const FORM_DOI_SETTINGS = 'doiSettings';
+    public const SETTING_ENABLE_DOIS = 'enableDois';
 
     /** @copydoc FormComponent::$id */
     public $id = self::FORM_DOI_SETTINGS;
@@ -40,13 +41,13 @@ class PKPDoiSettingsForm extends FormComponent
         $this->action = $action;
         $this->locales = $locales;
 
-        $this->addField(new FieldOptions('enableDois', [
+        $this->addField(new FieldOptions(self::SETTING_ENABLE_DOIS, [
             'label' => __('manager.setup.dois'),
             'description' => __('manager.setup.enableDois.description'),
             'options' => [
                 ['value' => true, 'label' => __('manager.setup.enableDois.enable')]
             ],
-            'value' => (bool) $context->getData('enableDois'),
+            'value' => (bool) $context->getData(self::SETTING_ENABLE_DOIS),
         ]));
     }
 }

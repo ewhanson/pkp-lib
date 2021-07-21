@@ -13,6 +13,7 @@
 
 namespace PKP\doi;
 
+use APP\components\forms\context\DoiSettingsForm;
 use APP\core\Request;
 use APP\core\Services;
 use Exception;
@@ -113,23 +114,23 @@ class Repository
      *
      * @return array A key/value array with validation errors. Empty if no errors
      */
-    public function validate(?Doi $doi, array $props, array $allowedLocales, string $primaryLocale): array
+    public function validate(?Doi $object, array $props, array $allowedLocales, string $primaryLocale): array
     {
         $errors = [];
 
         $validator = ValidatorFactory::make(
             $props,
-            $this->schemaService->getValidationRules(PKPSchemaService::SCHEMA_DOI, $allowedLocales),
+            $this->schemaService->getValidationRules($this->dao->schema, $allowedLocales),
         );
 
         // Check required fields
         ValidatorFactory::required(
             $validator,
-            $doi,
-            $this->schemaService->getRequiredProps(PKPSchemaService::SCHEMA_DOI),
-            $this->schemaService->getMultilingualProps(PKPSchemaService::SCHEMA_DOI),
-            $primaryLocale,
-            $allowedLocales
+            $object,
+            $this->schemaService->getRequiredProps($this->dao->schema),
+            $this->schemaService->getMultilingualProps($this->dao->schema),
+            $allowedLocales,
+            $primaryLocale
         );
 
         // Check for input from disallowed locales
@@ -191,5 +192,56 @@ class Repository
         foreach ($dois as $doi) {
             $this->delete($doi);
         }
+    }
+
+    /**
+     * Whether or not DOIs are enabled for this context
+     *
+     */
+    public function isEnabled(): bool
+    {
+        return $this->request->getContext()->getData('enableDois');
+    }
+
+    /**
+     * Gets context setting value for a given key
+     *
+     *
+     */
+    public function getContextSetting(string $key)
+    {
+        return $this->request->getContext()->getData($key);
+    }
+
+    /**
+     * Gets the DOI prefix for the current context if configured
+     *
+     */
+    public function getPrefix(): ?string
+    {
+        return $this->getContextSetting(DoiSettingsForm::SETTING_DOI_PREFIX);
+    }
+
+    /**
+     * Get context-specific DOI settings
+     *
+     * @return array
+     */
+    public function getSettings()
+    {
+        $context = $this->request->getContext();
+
+        return [
+            DoiSettingsForm::SETTING_ENABLE_DOIS => (bool) $context->getData(DoiSettingsForm::SETTING_ENABLE_DOIS),
+            DoiSettingsForm::SETTING_ENABLED_DOI_TYPES => $context->getData(DoiSettingsForm::SETTING_ENABLED_DOI_TYPES),
+            DoiSettingsForm::SETTING_DOI_PREFIX => $context->getData(DoiSettingsForm::SETTING_DOI_PREFIX),
+            DoiSettingsForm::SETTING_USE_DEFAULT_DOI_SUFFIX => (bool) $context->getData(DoiSettingsForm::SETTING_USE_DEFAULT_DOI_SUFFIX),
+            DoiSettingsForm::SETTING_CUSTOM_DOI_SUFFIX_TYPE => $context->getData(DoiSettingsForm::SETTING_CUSTOM_DOI_SUFFIX_TYPE)
+        ];
+    }
+
+    public function setStatus(int $status, Doi $doi)
+    {
+        $this->edit($doi, ['status' => $status]);
     }
 }

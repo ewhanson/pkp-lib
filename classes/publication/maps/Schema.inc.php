@@ -15,6 +15,7 @@ namespace PKP\publication\maps;
 
 use APP\core\Request;
 use APP\core\Services;
+use APP\facades\Repo;
 use APP\publication\Publication;
 use APP\submission\Submission;
 
@@ -137,6 +138,15 @@ class Schema extends \PKP\core\maps\Schema
                         },
                         $citationDao->getByPublicationId($publication->getId())->toArray()
                     );
+                    break;
+                case 'doi':
+                    if ($publication->getData('doi')) {
+                        $retVal = Repo::doi()->getSchemaMap()->summarize($publication->getData('doi'));
+                    } else {
+                        $retVal = null;
+                    }
+
+                    $output[$prop] = $retVal;
                     break;
                 case 'fullTitle':
                     $output[$prop] = $publication->getFullTitles();

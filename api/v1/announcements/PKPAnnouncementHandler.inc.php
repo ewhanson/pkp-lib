@@ -152,6 +152,7 @@ class PKPAnnouncementHandler extends APIHandler
 
         $collector->filterByContextIds([$this->getRequest()->getContext()->getId()]);
 
+        // TODO: Check if should be announcements
         HookRegistry::call('API::submissions::params', [$collector, $slimRequest]);
 
         $announcements = Repo::announcement()->getMany($collector);

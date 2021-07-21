@@ -19,7 +19,7 @@
     "id": {
       "type": "integer",
       "apiSummary": true,
-      "readyOnly": true
+      "readOnly": true
     },
     "status": {
       "type": "integer",

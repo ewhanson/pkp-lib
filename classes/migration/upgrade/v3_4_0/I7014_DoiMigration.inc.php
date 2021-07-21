@@ -45,6 +45,13 @@ class I7014_DoiMigration extends Migration
             $table->index(['doi_id'], 'doi_settings_doi_id');
             $table->unique(['doi_id', 'locale', 'setting_name'], 'doi_settings_pkey');
         });
+
+        // Add doiId to publication
+        Schema::table('publications', function (Blueprint $table) {
+            $table->bigInteger('doi_id')->nullable();
+
+            $table->foreign('doi_id')->references('doi_id')->on('dois')->nullOnDelete();
+        });
     }
 
     /**
@@ -52,6 +59,13 @@ class I7014_DoiMigration extends Migration
      */
     public function down()
     {
+        Schema::table('publications', function (Blueprint $table) {
+            $table->dropForeign(['doi_id']);
+            $table->dropColumn('doi_id');
+        });
+
+        // TODO: ERROR: SQLSTATE[HY000]: General error: 1553 Cannot drop index 'publications_doi_id_foreign': needed in a foreign key constraint (SQL: alter table `publications` drop `doi_id`)
+
         Schema::drop('dois');
         Schema::drop('doi_settings');
     }

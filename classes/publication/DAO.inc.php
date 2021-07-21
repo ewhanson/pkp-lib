@@ -14,6 +14,7 @@
 namespace PKP\publication;
 
 use APP\core\Services;
+use APP\facades\Repo;
 use APP\publication\Publication;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Enumerable;
@@ -191,6 +192,14 @@ class DAO extends EntityDAO
     public function fromRow(stdClass $row): Publication
     {
         $publication = parent::fromRow($row);
+
+        // NULL values in integer columns coerced into 0.
+        // This causes a fatal SQL error if used with a foreig key constraint
+        if ($publication->getData('doiId') == 0) {
+            $publication->unsetData('doiId');
+        }
+
+        $this->setDoi($publication);
 
         // Set the primary locale from the submission
         $locale = DB::table('submissions as s')
@@ -532,5 +541,16 @@ class DAO extends EntityDAO
     protected function deleteCitations(int $publicationId)
     {
         $this->citationDao->deleteByPublicationId($publicationId);
+    }
+
+    /**
+     * Set the DOI
+     *
+     */
+    protected function setDoi(Publication $publication)
+    {
+        if (!empty($publication->getData('doiId'))) {
+            $publication->setData('doi', Repo::doi()->get($publication->getdata('doiId')));
+        }
     }
 }

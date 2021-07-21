@@ -13,6 +13,7 @@
 
 namespace PKP\publication;
 
+use APP\components\forms\context\DoiSettingsForm;
 use APP\core\Application;
 use APP\core\Request;
 use APP\core\Services;
@@ -425,6 +426,12 @@ abstract class Repository
             }
         }
 
+        // Mint DOIs
+        if (Repo::doi()->shouldMintDoiType(DoiSettingsForm::TYPE_ARTICLE) && empty($newPublication->getData('doiId'))) {
+            $doiId = Repo::doi()->mintPublicationDoi($newPublication);
+            $newPublication->setData('doiId', $doiId);
+        }
+
         HookRegistry::call('Publication::publish::before', [&$newPublication, $publication]);
 
         $this->dao->update($newPublication);
@@ -509,6 +516,7 @@ abstract class Repository
 
         // Update the metadata in the search index.
         if ($submission->getData('status') !== Submission::STATUS_PUBLISHED) {
+            // TODO: What to do with DOI status when article is unpublished?
             Application::getSubmissionSearchIndex()->deleteTextIndex($submission->getId());
             Application::getSubmissionSearchIndex()->clearSubmissionFiles($submission);
         } else {

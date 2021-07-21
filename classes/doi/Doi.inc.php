@@ -26,14 +26,16 @@ use PKP\core\DataObject;
 
 class Doi extends DataObject
 {
-    public const STATUS_UNREGISTERED = 'unregistered';
-    public const STATUS_SUBMITTED = 'submitted';
-    public const STATUS_ERROR = 'error';
-    public const STATUS_STALE = 'stale';
+    public const STATUS_UNREGISTERED = 1;
+    public const STATUS_SUBMITTED = 2;
+    public const STATUS_REGISTERED = 3;
+    public const STATUS_ERROR = 4;
+    public const STATUS_STALE = 5;
 
     //
     // Get/set methods
     //
+    // TODO: Remove getters/setters
 
     /**
      * Get ID of context.
