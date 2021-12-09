@@ -536,19 +536,6 @@ abstract class Repository
     abstract public function createDois(Submission $submission): void;
 
     /**
-     *
-     */
-    public function checkIfValidForDoiExport(Submission $submission): bool
-    {
-        /** @var Publication $currentPublication */
-        $currentPublication = $submission->getCurrentPublication();
-        if ($currentPublication->getData('status') === PKPSubmission::STATUS_PUBLISHED) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * Compile the sort orderBy and orderDirection into an option
      * used in forms
      */

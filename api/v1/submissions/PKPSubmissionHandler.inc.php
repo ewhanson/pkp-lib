@@ -322,7 +322,7 @@ class PKPSubmissionHandler extends APIHandler
                     $collector->filterByOverdue(true);
                     break;
                 case 'doiStatus':
-                    $collector->filterByDoiStatusesIncludeSubObjects(array_map('intval', $this->paramToArray($val)));
+                    $collector->filterByDoiStatuses(array_map('intval', $this->paramToArray($val)));
             }
         }
 

@@ -16,12 +16,14 @@
 
 use APP\facades\Repo;
 use APP\plugins\IDoiRegistrationAgency;
-use APP\plugins\PubObjectsExportPlugin;
+use APP\submission\Submission;
 
 use PKP\core\APIResponse;
 use PKP\file\TemporaryFileManager;
 use PKP\handler\APIHandler;
 use PKP\security\authorization\ContextAccessPolicy;
+use PKP\security\authorization\PolicySet;
+use PKP\security\authorization\RoleBasedHandlerOperationPolicy;
 use PKP\security\Role;
 
 use Slim\Http\Request as SlimRequest;
@@ -35,27 +37,18 @@ class PKPDoiHandler extends APIHandler
     /** @var int The maximum number of DOIs to return in one request */
     public const MAX_COUNT = 100;
 
-    /** @var DOIPubIdPlugin */
-    private $_doiPubIdPlugin;
-
     /** @var array Handlers that must be authorized to access a submission */
     public $requiresSubmissionAccess = [];
 
     /** @var array Handlers that must be authorized to write to a publication */
     public $requiresPublicationWriteAccess = [];
 
-    /** @var array Valid DOI export actions */
-    private $_validActions = [
-        PubObjectsExportPlugin::EXPORT_ACTION_DEPOSIT,
-        PubObjectsExportPlugin::EXPORT_ACTION_EXPORT,
-        PubObjectsExportPlugin::EXPORT_ACTION_MARKREGISTERED
-    ];
-
     /**
      * Constructor
      */
     public function __construct()
     {
+        $this->_handlerPath = 'dois';
         $this->_endpoints = array_merge_recursive($this->_endpoints, [
             'GET' => [
                 [
@@ -69,7 +62,7 @@ class PKPDoiHandler extends APIHandler
                     'roles' => [Role::ROLE_ID_MANAGER],
                 ],
                 [
-                    'pattern' => $this->getEndpointPattern() . '/exportedFile/{fileId:\d+}',
+                    'pattern' => $this->getEndpointPattern() . '/exports/{fileId:\d+}',
                     'handler' => [$this, 'getExportedFile'],
                     'roles' => [Role::ROLE_ID_MANAGER],
                 ]
@@ -134,9 +127,14 @@ class PKPDoiHandler extends APIHandler
      */
     public function authorize($request, &$args, $roleAssignments)
     {
-        $routeName = $this->getSlimRequest()->getAttribute('route')->getName();
-
+        // This endpoint is not available at the site-wide level
         $this->addPolicy(new ContextAccessPolicy($request, $roleAssignments));
+
+        $rolePolicy = new PolicySet(PolicySet::COMBINING_PERMIT_OVERRIDES);
+        foreach ($roleAssignments as $role => $operations) {
+            $rolePolicy->addPolicy(new RoleBasedHandlerOperationPolicy($request, $role, $operations));
+        }
+        $this->addPolicy($rolePolicy);
 
 
         return parent::authorize($request, $args, $roleAssignments);
@@ -236,9 +234,6 @@ class PKPDoiHandler extends APIHandler
 
     /**
      * Edit a DOI
-     *
-     *
-     * @throws Exception
      */
     public function edit(SlimRequest $slimRequest, APIResponse $response, array $args): Response
     {
@@ -303,31 +298,34 @@ class PKPDoiHandler extends APIHandler
     public function exportSubmissions(SlimRequest $slimRequest, APIResponse $response, array $args): Response
     {
         // Retrieve and validate submissions
-        $ids = $this->getIdsFromRequest($slimRequest);
-        if ($ids === null) {
+        $requestIds = $slimRequest->getParsedBody()['ids'] ?? [];
+        if (!count($requestIds)) {
             return $response->withStatus(404)->withJsonError('api.dois.404.noPubObjectIncluded');
+        }
+
+        $context = $this->getRequest()->getContext();
+
+        $validIds = Repo::submission()->getIds(
+            Repo::submission()
+                ->getCollector()
+                ->filterByContextIds([$context->getId()])
+                ->filterByStatus([Submission::STATUS_PUBLISHED])
+        )->toArray();
+
+        $invalidIds = array_diff($requestIds, $validIds);
+        if (count($invalidIds)) {
+            return $response->withStatus(400)->withJsonError('api.dois.400.invalidPubObjectIncluded');
         }
 
         /** @var Submission[] $submissions */
         $submissions = [];
-        foreach ($ids as $id) {
-            $submission = Repo::submission()->get($id);
-            if (Repo::submission()->checkIfValidForDoiExport($submission)) {
-                $submissions[] = $submission;
-            } else {
-                return $response->withStatus(400)->withJsonError('api.dois.400.noUnpublishedItems');
-            }
+        foreach ($requestIds as $id) {
+            $submissions[] = Repo::submission()->get($id);
         }
 
-        // Get configured agency
         if (empty($submissions[0])) {
             return $response->withStatus(404)->withJsonError('apis.dois.404.doiNotFound');
         }
-
-        $contextId = $submissions[0]->getData('contextId');
-        /** @var \PKP\context\ContextDAO $contextDao */
-        $contextDao = \APP\core\Application::getContextDAO();
-        $context = $contextDao->getById($contextId);
 
         /** @var IDoiRegistrationAgency $agency */
         $agency = $this->_getAgencyFromContext($context);
@@ -340,37 +338,40 @@ class PKPDoiHandler extends APIHandler
         if (!empty($responseData['xmlErrors'])) {
             return $response->withStatus(400)->withJsonError('api.dois.400.xmlExportFailed');
         }
-        return $response->withJson(['tempFileId' => $responseData['tempFileId']], 200);
+        return $response->withJson(['temporaryFileId' => $responseData['temporaryFileId']], 200);
     }
 
     public function depositSubmissions(SlimRequest $slimRequest, APIResponse $response, array $args): Response
     {
         // Retrieve and validate the submissions
-        $ids = $this->getIdsFromRequest($slimRequest);
-        if ($ids === null) {
+        $requestIds = $slimRequest->getParsedBody()['ids'] ?? [];
+        if (!count($requestIds)) {
             return $response->withStatus(404)->withJsonError('api.dois.404.noPubObjectIncluded');
+        }
+
+        $context = $this->getRequest()->getContext();
+
+        $validIds = Repo::submission()->getIds(
+            Repo::submission()
+                ->getCollector()
+                ->filterByContextIds([$context->getId()])
+                ->filterByStatus([Submission::STATUS_PUBLISHED])
+        )->toArray();
+
+        $invalidIds = array_diff($requestIds, $validIds);
+        if (count($invalidIds)) {
+            return $response->withStatus(400)->withJsonError('api.dois.400.invalidPubObjectIncluded');
         }
 
         /** @var Submission[] $submissions */
         $submissions = [];
-        foreach ($ids as $id) {
-            $submission = Repo::submission()->get($id);
-            if (Repo::submission()->checkIfValidForDoiExport($submission)) {
-                $submissions[] = $submission;
-            } else {
-                return $response->withStatus(400)->withJsonError('api.dois.400.noUnpublishedItems');
-            }
+        foreach ($requestIds as $id) {
+            $submissions[] = Repo::submission()->get($id);
         }
 
-        // Get configured agency
         if (empty($submissions[0])) {
             return $response->withStatus(404)->withJsonError('apis.dois.404.doiNotFound');
         }
-
-        $contextId = $submissions[0]->getData('contextId');
-        /** @var \PKP\context\ContextDAO $contextDao */
-        $contextDao = \APP\core\Application::getContextDAO();
-        $context = $contextDao->getById($contextId);
 
         /** @var IDoiRegistrationAgency $agency */
         $agency = $this->_getAgencyFromContext($context);
@@ -392,15 +393,29 @@ class PKPDoiHandler extends APIHandler
     public function markSubmissionsRegistered(SlimRequest $slimRequest, APIResponse $response, array $args): Response
     {
         // Retrieve submissions
-        $ids = $this->getIdsFromRequest($slimRequest);
-        if ($ids === null) {
+        $requestIds = $slimRequest->getParsedBody()['ids'] ?? [];
+        if (!count($requestIds)) {
             return $response->withStatus(404)->withJsonError('api.dois.404.noPubObjectIncluded');
+        }
+
+        $context = $this->getRequest()->getContext();
+
+        $validIds = Repo::submission()->getIds(
+            Repo::submission()
+                ->getCollector()
+                ->filterByContextIds([$context->getId()])
+                ->filterByStatus([Submission::STATUS_PUBLISHED])
+        )->toArray();
+
+        $invalidIds = array_diff($requestIds, $validIds);
+        if (count($invalidIds)) {
+            return $response->withStatus(400)->withJsonError('api.dois.400.invalidPubObjectIncluded');
         }
 
         $idsWithErrors = [];
 
         // TODO: #doi Should mark registered be allowed for unpublished items?
-        foreach ($ids as $id) {
+        foreach ($requestIds as $id) {
             $doiIds = Repo::doi()->getDoisForSubmission($id);
             foreach ($doiIds as $doiId) {
                 Repo::doi()->markRegistered($doiId);
@@ -429,13 +444,13 @@ class PKPDoiHandler extends APIHandler
     public function assignSubmissionDois(SlimRequest $slimRequest, APIResponse $response, array $args): Response
     {
         // Retrieve submissions
-        $ids = $this->getIdsFromRequest($slimRequest);
-        if ($ids == null) {
+        $requestIds = $slimRequest->getParsedBody()['ids'] ?? [];
+        if ($requestIds == null) {
             return $response->withStatus(404)->withJsonError('api.submissions.404.resourceNotFound');
         }
 
         // Assign DOIs
-        foreach ($ids as $id) {
+        foreach ($requestIds as $id) {
             $submission = Repo::submission()->get($id);
             if ($submission !== null) {
                 Repo::submission()->createDois($submission);
@@ -458,21 +473,6 @@ class PKPDoiHandler extends APIHandler
         $tempFileManager = new TemporaryFileManager();
         $tempFileManager->downloadById($fileId, $currentUser->getId());
         return $response->withStatus(200);
-    }
-
-    /**
-     * Removes and checks for pubObject IDs in API request
-     *
-     *
-     */
-    protected function getIdsFromRequest(SlimRequest $slimRequest): ?array
-    {
-        $params = $slimRequest->getParsedBody();
-        $ids = $params['ids'];
-        if (!isset($ids) || !is_array($ids) || !count($ids)) {
-            return null;
-        }
-        return $ids;
     }
 
     /**

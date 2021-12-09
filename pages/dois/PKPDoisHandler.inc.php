@@ -14,6 +14,7 @@
  */
 
 use APP\handler\Handler;
+use PKP\plugins\IPKPDoiRegistrationAgency;
 use PKP\security\authorization\PolicySet;
 use PKP\security\authorization\RoleBasedHandlerOperationPolicy;
 use PKP\security\Role;
@@ -49,5 +50,29 @@ class PKPDoisHandler extends Handler
         $this->addPolicy($rolePolicy);
 
         return parent::authorize($request, $args, $roleAssignments);
+    }
+
+    protected function _getRegistrationAgencyInfo(\PKP\context\Context $context): stdClass
+    {
+        $info = new stdClass();
+        $info->isConfigured = false;
+        $info->displayName = '';
+        $info->errorMessageKey = null;
+        $info->registeredMessageKey = null;
+        $info->errorMessagePreamble = null;
+        $info->registeredMessagePreamble = null;
+
+        /** @var IPKPDoiRegistrationAgency $plugin */
+        $plugin = $context->getConfiguredDoiAgency();
+        if ($plugin != null) {
+            $info->isConfigured = $plugin->isPluginConfigured($context);
+            $info->displayName = $plugin->getRegistrationAgencyName();
+            $info->errorMessageKey = $plugin->getErrorMessageKey();
+            $info->registeredMessageKey = $plugin->getRegisteredMessageKey();
+            $info->errorMessagePreamble = __('manager.dois.registrationAgency.errorMessagePreamble', ['registrationAgency' => $plugin->getRegistrationAgencyName()]);
+            $info->registeredMessagePreamble = __('manager.dois.registrationAgency.registrationMessagePreamble', ['registrationAgency' => $plugin->getRegistrationAgencyName()]);
+        }
+
+        return $info;
     }
 }

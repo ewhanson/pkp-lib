@@ -19,7 +19,6 @@ use APP\core\Services;
 use APP\facades\Repo;
 use APP\plugins\IDoiRegistrationAgency;
 use APP\publication\Publication;
-use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Queue;
@@ -30,10 +29,9 @@ use PKP\plugins\HookRegistry;
 use PKP\services\PKPSchemaService;
 use PKP\validation\ValidatorFactory;
 
-class Repository
+abstract class Repository
 {
-    // TODO: #doi change to not be OJS-specific language
-    public const SUFFIX_ISSUE = 'issueBased';
+    public const SUFFIX_DEFAULT_PATTERN = 'defaultPattern';
     public const SUFFIX_CUSTOM_PATTERN = 'customPattern';
     public const CUSTOM_SUFFIX_MANUAL = 'customId';
 
@@ -144,15 +142,12 @@ class Repository
      *
      * @param array $props A key/value array with the new data to validate
      *
-     * @throws Exception
-     *
      * @return array A key/value array with validation errors. Empty if no errors
      */
     public function validate(?Doi $object, array $props): array
     {
         $errors = [];
 
-        /** @var \PKP\validation\Illuminate\Validation\Validator $validator */
         $validator = ValidatorFactory::make(
             $props,
             $this->schemaService->getValidationRules($this->dao->schema, []),
@@ -267,7 +262,7 @@ class Repository
     public function scheduleDepositAll(Context $context)
     {
         $enabledDoiTypes = $context->getData(Context::SETTING_ENABLED_DOI_TYPES);
-        if (in_array(Repo::doi()::TYPE_PUBLICATION, $enabledDoiTypes) || in_array(Repo::doi()::TYPE_PUBLICATION, $enabledDoiTypes)) {
+        if ($this->_checkIfSubmissionValidForDeposit($enabledDoiTypes)) {
             $submissionsCollection = $this->dao->getAllDepositableSubmissionIds($context);
             $submissionData = $submissionsCollection->reduce(function ($carry, $item) {
                 if ($item->submission_id) {
@@ -279,16 +274,11 @@ class Repository
             }, ['submissionIds' => [], 'doiIds' => []]);
 
             // Schedule/queue jobs for submissions
-            $contextId = $context->getId();
             $agency = $this->_getAgencyFromContext($context);
 
             foreach ($submissionData['submissionIds'] as $submissionId) {
-                Queue::push(function () use ($submissionId, $contextId, $agency) {
+                Queue::push(function () use ($submissionId, $context, $agency) {
                     $submission = Repo::submission()->get($submissionId);
-
-                    /** @var ContextDAO $contextDao */
-                    $contextDao = Application::getContextDAO();
-                    $context = $contextDao->getById($contextId);
 
                     if (!$submission || !$agency) {
                         // TODO: #doi Something went wrong if there's no issue or agency. Bail out or mark failed?
@@ -303,16 +293,37 @@ class Repository
     }
 
     /**
+     * Loops over valid submission DOI types to see if any are enabled
+     *
+     * @param array $enabledDoiTypes
+     * @return bool
+     */
+    private function _checkIfSubmissionValidForDeposit(array $enabledDoiTypes): bool
+    {
+        foreach ($this->getValidSubmissionDoiTypes() as $validSubmissionDoiType) {
+            if (in_array($validSubmissionDoiType, $enabledDoiTypes)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get app-specific DOI type constants to check when scheduling deposit for submissions
+     *
+     * @return array
+     */
+    abstract protected function getValidSubmissionDoiTypes(): array;
+
+    /**
      * Gets all relevant DOI IDs related to a submission
      * NB: Assumes current publication only and only enabled DOI types
      *
      *
      * @return array DOI IDs
      */
-    public function getDoisForSubmission(int $submissionId): array
-    {
-        return [];
-    }
+    abstract public function getDoisForSubmission(int $submissionId): array;
 
     /**
      * Compose final DOI and save to database

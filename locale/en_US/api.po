@@ -44,6 +44,18 @@ msgstr "The announcement you requested was not found."
 msgid "api.contexts.400.localesNotSupported"
 msgstr "The following locales are not supported: {$locales}."
 
+msgid "api.dois.403.editItemOutOfContext"
+msgstr "You cannot edit an item's DOI that is not in this context"
+
+msgid "api.dois.404.contextNotFound"
+msgstr "This endpoint is not available from the site-wide namespace, and must be requested for a given context."
+
+msgid "api.dois.404.noPubObjectIncluded"
+msgstr "No valid publication objects were included with the request."
+
+msgid "api.dois.400.invalidPubObjectIncluded"
+msgstr "One or more invalid publication objects were included with the request."
+
 msgid "api.emails.400.missingBody"
 msgstr "You must include an email to be sent."
 

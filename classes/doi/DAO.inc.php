@@ -28,7 +28,7 @@ use PKP\services\PKPSchemaService;
 use PKP\submission\PKPSubmission;
 use stdClass;
 
-class DAO extends \PKP\core\EntityDAO
+abstract class DAO extends \PKP\core\EntityDAO
 {
     /** @copydoc EntityDAO::$schema */
     public $schema = PKPSchemaService::SCHEMA_DOI;
@@ -148,7 +148,7 @@ class DAO extends \PKP\core\EntityDAO
 
     /**
      * Helper to get galley IDs that are unregistered and published
-     * TODO: #doi revisit with Galley EntityDAO
+     * TODO: #doi revisit with Galley EntityDAO, See if should go in APP DAO after OPS
      *
      *
      */
@@ -215,40 +215,11 @@ class DAO extends \PKP\core\EntityDAO
             ->update(['status' => Doi::STATUS_SUBMITTED]);
     }
 
-    public function getAllDepositableSubmissionIds(Context $context): Collection
-    {
-        $enabledDoiTypes = $context->getData(Context::SETTING_ENABLED_DOI_TYPES);
-
-        $q = DB::table($this->table, 'd')
-            ->leftJoin('publications as p', 'd.doi_id', '=', 'p.doi_id')
-            ->leftJoin('submissions as s', 'p.publication_id', '=', 's.current_publication_id')
-            ->where('d.context_id', '=', $context->getId())
-            ->where(function (Builder $q) use ($enabledDoiTypes) {
-                // Publication DOIs
-                $q->when(in_array(Repo::doi()::TYPE_PUBLICATION, $enabledDoiTypes), function (Builder $q) {
-                    $q->whereIn('d.doi_id', function (Builder $q) {
-                        $q->select('p.doi_id')
-                            ->from('publications', 'p')
-                            ->leftJoin('submissions as s', 'p.publication_id', '=', 's.current_publication_id')
-                            ->whereColumn('p.publication_id', '=', 's.current_publication_id')
-                            ->whereNotNull('p.doi_id')
-                            ->where('p.status', '=', PKPSubmission::STATUS_PUBLISHED);
-                    });
-                })
-                    // Galley DOIs
-                    ->when(in_array(Repo::doi()::TYPE_REPRESENTATION, $enabledDoiTypes), function (Builder $q) {
-                        $q->orWhereIn('d.doi_id', function (Builder $q) {
-                            $q->select('g.doi_id')
-                                ->from('publication_galleys', 'g')
-                                ->leftJoin('publications as p', 'g.publication_id', '=', 'p.publication_id')
-                                ->leftJoin('submissions as s', 'p.publication_id', '=', 's.current_publication_id')
-                                ->whereColumn('p.publication_id', '=', 's.current_publication_id')
-                                ->whereNotNull('g.doi_id')
-                                ->where('p.status', '=', PKPSubmission::STATUS_PUBLISHED);
-                        });
-                    });
-            });
-        $q->whereIn('d.status', [Doi::STATUS_UNREGISTERED, Doi::STATUS_ERROR, Doi::STATUS_STALE]);
-        return $q->get(['s.submission_id', 'd.doi_id']);
-    }
+    /**
+     * Get all depositable submission IDs along with all associated DOI IDs
+     *
+     * @param Context $context
+     * @return Collection
+     */
+    abstract public function getAllDepositableSubmissionIds(Context $context): Collection;
 }

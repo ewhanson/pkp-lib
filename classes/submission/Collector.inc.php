@@ -51,6 +51,12 @@ abstract class Collector implements CollectorInterface
     public ?string $searchPhrase = null;
     public ?array $statuses = null;
     public ?array $stageIds = null;
+    public ?array $doiStatuses = null;
+
+    /** @var bool Whether null/empty values should count when considering Doi::STATUS_UNREGISTERED */
+    public bool $strictDoiStatusFilter = false;
+
+    // TODO: #doi See if publication DOI specific one is needed. Only used by DOAJ at the moment in OJS
 
     /** @var array|int */
     public $assignedTo = null;
@@ -86,7 +92,13 @@ abstract class Collector implements CollectorInterface
      *
      * @return AppCollector
      */
-    abstract public function filterByDoiStatusesIncludeSubObjects(?array $statuses, bool $strict = false): AppCollector;
+    public function filterByDoiStatuses(?array $statuses, bool $strict = false): AppCollector
+    {
+        $this->doiStatuses = $statuses;
+        $this->strictDoiStatusFilter = $strict;
+
+        return $this;
+    }
 
     /**
      * Limit results by submissions with these statuses
@@ -200,6 +212,14 @@ abstract class Collector implements CollectorInterface
         $this->orderDirection = $direction;
         return $this;
     }
+
+    /**
+     * Add APP-specific filtering methods for submission sub objects DOI statuses
+     *
+     * @param Builder $q
+     * @return void
+     */
+    abstract protected function addDoiStatusFilterToQuery(Builder $q);
 
     /**
      * @copydoc CollectorInterface::getQueryBuilder()
@@ -366,6 +386,11 @@ abstract class Collector implements CollectorInterface
             $q->join('publication_categories as pc', 's.current_publication_id', '=', 'pc.publication_id')
                 ->whereIn('pc.category_id', $this->categoryIds);
         }
+
+        // By any child pub object's DOI status
+        $q->when($this->doiStatuses !== null, function (Builder $q) {
+            $this->addDoiStatusFilterToQuery($q);
+        });
 
         // Limit and offset results for pagination
         if (isset($this->count)) {

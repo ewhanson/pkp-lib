@@ -145,7 +145,7 @@ class SubmissionFile extends \PKP\core\DataObject
                     ]
                 );
                 $doiId = Repo::doi()->add($newDoiObject);
-
+                $this->setData('doiId', $doiId);
             }
         } else {
             $this->setData('pub-id::' . $pubIdType, $pubId);
