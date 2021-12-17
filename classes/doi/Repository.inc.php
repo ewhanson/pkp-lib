@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file classes/doi/Repository.inc.php
  *
@@ -13,18 +14,15 @@
 
 namespace PKP\doi;
 
-use APP\core\Application;
 use APP\core\Request;
 use APP\core\Services;
 use APP\facades\Repo;
 use APP\plugins\IDoiRegistrationAgency;
-use APP\publication\Publication;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\LazyCollection;
 use PKP\context\Context;
-use PKP\context\ContextDAO;
 use PKP\plugins\HookRegistry;
 use PKP\services\PKPSchemaService;
 use PKP\validation\ValidatorFactory;
@@ -112,8 +110,6 @@ abstract class Repository
 
     /**
      * Check if duplicate of this DOI has already been recorded across all contexts.
-     *
-     *
      */
     public function isDuplicate(string $doi, ?int $excludeDoiId = null): bool
     {
@@ -229,25 +225,34 @@ abstract class Repository
     }
 
     /**
-     * Handles updating publication/submission DOI status when metadata changes
+     * Set DOIs status to Doi::STATUS_STALE, indicating the metadata has change and needs
+     * to be updated with the registration agency.
+     *
      *
      */
-    public function publicationUpdated(Publication $publication)
+    public function markStale(array $doiIds)
     {
-        $doiIds = Repo::doi()->getDoisForSubmission($publication->getData('submissionId'));
-        $this->dao->setDoisToStale($doiIds);
+        $this->dao->markStale($doiIds);
     }
 
-    public function setDoisToStale(array $doiIds)
+    /**
+     * Sets DOI status to Doi::STATUS_SUBMITTED, indicating the DOI has been queued to be
+     * deposited with a registration agency, but the actual deposit has not yet been made.
+     *
+     *
+     */
+    public function markSubmitted(array $doiIds)
     {
-        $this->dao->setDoisToStale($doiIds);
+        $this->dao->markSubmitted($doiIds);
     }
 
-    public function setDoisToSubmitted(array $doiIds)
-    {
-        $this->dao->setDoisToSubmitted($doiIds);
-    }
-
+    /**
+     * Manually sets DOI status to Doi::STATUS_REGISTERED. This is used in cases where the
+     * DOI registration process has been complete elsewhere and needs to be recorded as
+     * registered locally.
+     *
+     *
+     */
     public function markRegistered(int $doiId)
     {
         $doi = $this->get($doiId);
@@ -259,7 +264,14 @@ abstract class Repository
         $this->edit($doi, $editParams);
     }
 
-    public function scheduleDepositAll(Context $context)
+    /**
+     * Schedules DOI deposits with the active registration agency for all valid and
+     * unregistered/stale publication items. Items are added as a queued job to be
+     * completed asynchronously.
+     *
+     *
+     */
+    public function depositAll(Context $context)
     {
         $enabledDoiTypes = $context->getData(Context::SETTING_ENABLED_DOI_TYPES);
         if ($this->_checkIfSubmissionValidForDeposit($enabledDoiTypes)) {
@@ -280,23 +292,21 @@ abstract class Repository
                 Queue::push(function () use ($submissionId, $context, $agency) {
                     $submission = Repo::submission()->get($submissionId);
 
-                    if (!$submission || !$agency) {
-                        // TODO: #doi Something went wrong if there's no issue or agency. Bail out or mark failed?
+                    if (!$submission) {
+                        // TODO: #doi Something went wrong if there's no submission or agency. Bail out or mark failed?
                     }
                     $retResults = $agency->depositSubmissions([$submission], $context);
                 });
             }
 
             // Mark submission DOIs as submitted
-            Repo::doi()->setDoisToSubmitted($submissionData['doiIds']);
+            Repo::doi()->markSubmitted($submissionData['doiIds']);
         }
     }
 
     /**
      * Loops over valid submission DOI types to see if any are enabled
      *
-     * @param array $enabledDoiTypes
-     * @return bool
      */
     private function _checkIfSubmissionValidForDeposit(array $enabledDoiTypes): bool
     {
@@ -312,14 +322,12 @@ abstract class Repository
     /**
      * Get app-specific DOI type constants to check when scheduling deposit for submissions
      *
-     * @return array
      */
     abstract protected function getValidSubmissionDoiTypes(): array;
 
     /**
      * Gets all relevant DOI IDs related to a submission
      * NB: Assumes current publication only and only enabled DOI types
-     *
      *
      * @return array DOI IDs
      */
@@ -328,9 +336,6 @@ abstract class Repository
     /**
      * Compose final DOI and save to database
      *
-     * @param Context $context
-     * @param string $doiSuffix
-     * @return int|null
      */
     protected function mintAndStoreDoi(Context $context, string $doiSuffix): ?int
     {
@@ -352,12 +357,11 @@ abstract class Repository
 
     /**
      * Helper to retrieve and confirm validity of registration agency for a given context
-     *
      */
     protected function _getAgencyFromContext(Context $context): ?IDoiRegistrationAgency
     {
         $agency = $context->getConfiguredDoiAgency();
-        if (empty($agency) || !($agency instanceof IDoiRegistrationAgency)) {
+        if (empty($agency)) {
             return null;
         }
 
@@ -367,8 +371,6 @@ abstract class Repository
     /**
      * Generate a suffix using base32 encoding.
      * If an existing match is found, a new DOI will be generated.
-     *
-     *
      */
     protected function generateDefaultSuffix(int $contextId): string
     {

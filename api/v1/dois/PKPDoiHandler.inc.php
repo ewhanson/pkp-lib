@@ -432,7 +432,7 @@ class PKPDoiHandler extends APIHandler
     public function depositAllDois(SlimRequest $slimRequest, APIResponse $response, array $args): Response
     {
         $context = $this->getRequest()->getContext();
-        Repo::doi()->scheduleDepositAll($context);
+        Repo::doi()->depositAll($context);
 
         return $response->withStatus(200);
     }
@@ -471,7 +471,10 @@ class PKPDoiHandler extends APIHandler
         $currentUser = Application::get()->getRequest()->getUser();
 
         $tempFileManager = new TemporaryFileManager();
-        $tempFileManager->downloadById($fileId, $currentUser->getId());
+        $isSuccess = $tempFileManager->downloadById($fileId, $currentUser->getId());
+        if (!$isSuccess) {
+            return $response->withStatus(403)->withJsonError('api.403.unauthorized');
+        }
         return $response->withStatus(200);
     }
 

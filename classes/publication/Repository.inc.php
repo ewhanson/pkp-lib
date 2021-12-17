@@ -449,7 +449,8 @@ abstract class Repository
 
         // Update the search index and mark DOIs stale (if applicable).
         if ($newPublication->getData('status') === Submission::STATUS_PUBLISHED) {
-            Repo::doi()->publicationUpdated($newPublication);
+            $staleDoiIds = Repo::doi()->getDoisForSubmission($newPublication->getData('submissionId'));
+            Repo::doi()->markStale($staleDoiIds);
 
             Application::getSubmissionSearchIndex()->submissionMetadataChanged($submission);
             Application::getSubmissionSearchIndex()->submissionFilesChanged($submission);
@@ -505,7 +506,8 @@ abstract class Repository
 
         // Update the metadata in the search index and mark DOIs stable (if applicable).
         if ($submission->getData('status') !== Submission::STATUS_PUBLISHED) {
-            Repo::doi()->publicationUpdated($newPublication);
+            $staleDoiIds = Repo::doi()->getDoisForSubmission($newPublication->getData('submissionId'));
+            Repo::doi()->markStale($staleDoiIds);
 
             Application::getSubmissionSearchIndex()->deleteTextIndex($submission->getId());
             Application::getSubmissionSearchIndex()->clearSubmissionFiles($submission);
@@ -641,7 +643,6 @@ abstract class Repository
      *
      * TODO: #doi possible candidate for moving all functionality to pkp-lib
      *
-     * @param Publication $newPublication
      * @return mixed
      */
     abstract protected function createDois(Publication $newPublication): void;

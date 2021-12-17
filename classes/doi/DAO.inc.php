@@ -17,7 +17,6 @@
 
 namespace PKP\doi;
 
-use APP\facades\Repo;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
@@ -187,10 +186,10 @@ abstract class DAO extends \PKP\core\EntityDAO
     }
 
     /**
-     * Set DOIs as stale if they currently have an updatable status
+     * Set DOIs as stale if they have been submitted or registered
      *
      */
-    public function setDoisToStale(array $doiIds)
+    public function markStale(array $doiIds)
     {
         $q = DB::table($this->table, 'd');
 
@@ -208,7 +207,7 @@ abstract class DAO extends \PKP\core\EntityDAO
      * Set DOIs as submitted once they have been added to the queue for processing
      *
      */
-    public function setDoisToSubmitted(array $doiIds)
+    public function markSubmitted(array $doiIds)
     {
         $q = DB::table($this->table, 'd');
         $q->whereIn('d.doi_id', $doiIds)
@@ -216,10 +215,10 @@ abstract class DAO extends \PKP\core\EntityDAO
     }
 
     /**
-     * Get all depositable submission IDs along with all associated DOI IDs
+     * Gets all depositable submission IDs along with all associated DOI IDs for use in DOI bulk deposit jobs.
+     * This method is used to collect all valid submissions/IDs in a single query specifically for use with
+     * queued jobs for depositing DOIs with a registration agency.
      *
-     * @param Context $context
-     * @return Collection
      */
     abstract public function getAllDepositableSubmissionIds(Context $context): Collection;
 }

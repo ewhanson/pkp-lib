@@ -1,16 +1,16 @@
 <?php
 
 /**
- * @file classes/plugins/IDoiRegistrationAgency.inc.php
+ * @file classes/plugins/IPKPDoiRegistrationAgency.inc.php
  *
  * Copyright (c) 2014-2021 Simon Fraser University
  * Copyright (c) 2003-2021 John Willinsky
  * Distributed under the GNU GPL v3. For full terms see the file docs/COPYING.
  *
- * @class IDoiRegistrationAgency
+ * @class IPKPDoiRegistrationAgency
  * @ingroup plugins
  *
- * @brief Interface that DOI registration agency plugins use to interface with DOI managment functionality.
+ * @brief Interface that registration agency plugins must implement to support DOI registrations.
  */
 
 namespace PKP\plugins;
