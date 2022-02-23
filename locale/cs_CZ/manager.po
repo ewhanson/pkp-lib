@@ -2337,3 +2337,17 @@ msgstr "Nová diskusní zpráva"
 
 msgid "emailTemplate.variable.site.siteContactEmail"
 msgstr "E-mail hlavní kontaktní osoby webové stránky"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr "Suffix DOI může mít jakoukoli formu, ale musí být jedinečný mezi všemi publikovanými objekty se stejným prefixem DOI:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Použít výchozí vzor."
+
+msgid "doi.manager.settings.doiSuffix"
+msgstr "Suffix DOI"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr ""
+"Pro každou publikovanou položku zadejte individuální suffix DOI. Na stránce "
+"metadat dat každé položky naleznete vstupní pole pro zadání přípony DOI."

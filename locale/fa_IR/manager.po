@@ -1496,3 +1496,9 @@ msgstr "خطا:"
 
 msgid "plugins.importexport.common.error.unknownContext"
 msgstr "مسیر مجله وارد شده (\"{$contextPath}\") یافت شند."
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr "پشوند DOI میتواند در هر فرمتی باشد فقط باید توجه شود که به ازای یک پیشوند اختصاص داده شده DOI، این پسوندها منحصر به فرد باشد"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "استفاده از الگوی پیشفرض"

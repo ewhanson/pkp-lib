@@ -2241,3 +2241,17 @@ msgstr "BŁĄD:"
 
 msgid "plugins.importexport.common.error.unknownContext"
 msgstr "Określona ścieżka \"{$contextPath}\" nie istnieje."
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr "Sufiks DOI może przyjmować dowolną formę, ale musi być jednakowy dla wszystkich obiektów z takim samym prefiksem:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Korzystaj z domyślnego wzoru."
+
+msgid "doi.manager.settings.doiSuffix"
+msgstr "Sufiks DOI"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr ""
+"Wprowadź indywidualny sufiks DOI dla każdej publikowanej pozycji. Znajdziesz "
+"dodatkowy pole wejściowe DOI dla każdej pozycji na jego stronie z metadanymi."

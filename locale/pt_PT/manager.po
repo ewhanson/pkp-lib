@@ -2316,3 +2316,11 @@ msgstr ""
 
 msgid "emailTemplate.variable.site.siteContactEmail"
 msgstr "O e-mail do contacto principal do site"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr ""
+"O sufixo DOI pode ter vários formatos, mas deve ser único para todas as "
+"publicações que usem o mesmo prefixo:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Usar padrão por omissão."

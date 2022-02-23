@@ -31,7 +31,7 @@
 		<tab id="dois" label="{translate key="manager.dois.title"}">
 			<tabs :is-side-tabs="true" :track-history="true">
 				<tab id="doisSetup" label="{translate key="manager.setup.dois.setup"}">
-				<pkp-form
+				<doi-settings-form
 						v-bind="components.{PKP\components\forms\context\PKPDoiSetupSettingsForm::FORM_DOI_SETUP_SETTINGS}"
 						@set="set"
 				/>

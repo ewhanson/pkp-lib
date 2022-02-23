@@ -2376,3 +2376,9 @@ msgstr "Pemberitahuan"
 
 msgid "manager.emails.otherTemplates"
 msgstr "Templet Lain"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr "Akhiran DOI dapat dengan format apapun, tetapi harus unik di antara semua objek penerbitan dengan penugasan awalan DOI yang sama:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Gunakan pola default."

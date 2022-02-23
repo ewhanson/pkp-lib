@@ -2055,3 +2055,17 @@ msgstr "ПОМИЛКА:"
 
 msgid "plugins.importexport.common.error.unknownContext"
 msgstr "Вказаний шлях журналу \"{$contextPath}\" не існує."
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr "Суфікс DOI може мати будь-яку форму, але він має бути унікальним серед усіх опублікованих об'єктів з однаковим префіксом DOI:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Використовувати усталені шаблони."
+
+msgid "doi.manager.settings.doiSuffix"
+msgstr "Суфікс DOI"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr ""
+"Введіть індивідуальний суфікс DOI для кожного опублікованого елемента. Ви "
+"знайдете додаткове поле введення DOI на сторінці метаданих кожного елемента."

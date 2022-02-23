@@ -2596,3 +2596,18 @@ msgstr ""
 "A beküldést visszaigazoló e-mail másolata az itt megadott e-mail címek "
 "bármelyikére el lesz küldve. Az e-mail címeket vesszővel kell elválasztani. "
 "Példa: one@example.com,two@example.com"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr "A DOI utótag bármilyen formátumú lehet, de egyedinek kell lennie minden publikálási objektum esetében, amely ugyanahhoz a DOI előtaghoz tartozik:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Használja az alapértelmezett mintákat."
+
+#, fuzzy
+msgid "doi.manager.settings.doiSuffix"
+msgstr "DOI utótag (suffix)"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr ""
+"Adjon meg egy egyedi DOI utótagot (suffix) minden egyes közzétett tételhez. "
+"Az egyes tételek metaadat oldalán találni fog egy további DOI beviteli mezőt."

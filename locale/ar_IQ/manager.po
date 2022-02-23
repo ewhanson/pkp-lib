@@ -2211,3 +2211,11 @@ msgstr "رسالة جديدة من المناقشة"
 
 msgid "emailTemplate.variable.site.siteContactEmail"
 msgstr "عنوان البريد الالكتروني لجهة الاتصال الرئيسية في الموقع"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr ""
+"لاحقة معرف المكون الرقمي يمكنها أن تكون بأي تنسيق، لكنها لا بد أن تكون فريدة "
+"ما بين كل المكونات المنشورة المنضوية تحت نفس البادئة."
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "استعمل الأنماط الافتراضية."

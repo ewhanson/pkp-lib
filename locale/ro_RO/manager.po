@@ -2308,3 +2308,11 @@ msgstr "EROARE:"
 
 msgid "plugins.importexport.common.error.unknownContext"
 msgstr "Calea jurnalului specificat,\"{$contextPath}\", nu există."
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr ""
+"Un sufix DOI poate lua orice formă, dar trebuie să fie unic pentru toate "
+"obiectele de publicare cu același prefix DOI atribuit:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Utilizați modele implicite."

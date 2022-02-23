@@ -2200,3 +2200,11 @@ msgstr ""
 "Une copie de l'accusé de réception sera envoyée à toute adresse de courriel "
 "saisie ici. Les adresses doivent être séparées par une virgule. Exemple : "
 "un@exemple.com,deux@exemple.com"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr ""
+"Un suffixe DOI s'inscrit de différentes façons mais doit être unique par "
+"rapport aux autres « objets » publiés qui ont le même préfixe DOI :"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Utiliser les modèles par défaut."

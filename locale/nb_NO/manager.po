@@ -2358,3 +2358,19 @@ msgstr "FEIL:"
 
 msgid "plugins.importexport.common.error.unknownContext"
 msgstr "Den spesifiserte tidsskriftsstien \"{$contextPath}\" eksisterer ikke."
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr ""
+"Et DOI-suffiks kan ha en hvilken som helst form, men må være unikt der alle "
+"publiseringsobjekter er tildelt det samme DOI-prefikset:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Bruk standardformatene."
+
+msgid "doi.manager.settings.doiSuffix"
+msgstr "DOI-suffiks"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr ""
+"Skriv inn et individuelt DOI-suffiks for hvert publiserte objekt. Du finner "
+"et ekstra DOI-inntastingsfelt på metadata-siden til hvert objekt."

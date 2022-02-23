@@ -2332,3 +2332,15 @@ msgstr ""
 
 msgid "mailable.mailDiscussionMessage.name"
 msgstr "Novo sporočilo v diskusiji"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr "DOI pripona je poljubne oblike, pomembno je, da je unikatna med vsemi objavljenimi objekti, ki so bili izdani znotraj ene DOI predpone:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Uporabi privzet vzorec."
+
+msgid "doi.manager.settings.doiSuffix"
+msgstr "Pripona DOI"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr "Vnesi individualno pripono DOI za vsak objavljen element. Na vsaki metapodatkovni strani posameznega elementa boste našli dodatno polje za vnos DOI."

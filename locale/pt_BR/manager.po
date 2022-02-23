@@ -2352,3 +2352,17 @@ msgstr "Nova mensagem de discussão"
 
 msgid "emailTemplate.variable.site.siteContactEmail"
 msgstr "O e-mail do contato principal do site"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr "O sufixo DOI pode assumir qualquer forma, desde que seja único entre todos todos os objetos publicados com o mesmo prefixo DOI:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Use os padrões predefinidos."
+
+msgid "doi.manager.settings.doiSuffix"
+msgstr "Sufixo DOI"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr ""
+"Digite um sufixo DOI individual para cada item publicado. Você encontrará um "
+"campo de entrada DOI adicional na página de metadados de cada item."

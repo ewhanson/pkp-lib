@@ -2230,3 +2230,18 @@ msgstr "Новое сообщение в обсуждении"
 
 msgid "emailTemplate.variable.site.siteContactEmail"
 msgstr "Адрес электронной почты основного контактного лица сайта"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr "Суффикс DOI может принимать любую форму, но должен быть уникальным среди всех публикуемых объектов, которым присвоен один и тот же префикс DOI:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Использовать шаблоны по умолчанию."
+
+msgid "doi.manager.settings.doiSuffix"
+msgstr "Суффикс DOI"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr ""
+"Ввести индивидуальный суффикс DOI для каждого опубликованного элемента. Вы "
+"увидите дополнительное поле ввода DOI на странице метаданных для каждого "
+"элемента."

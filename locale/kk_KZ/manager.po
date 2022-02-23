@@ -14,3 +14,11 @@ msgstr ""
 
 msgid "manager.website.information"
 msgstr "Информация"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr ""
+"DOI жұрнағы кез-келген формада болуы мүмкін, бірақ бірдей DOI префиксі "
+"барлық жарияланған нысандар арасында ерекше болуы керек:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Негізгі үлгілерді қолданыңыз."

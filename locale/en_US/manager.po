@@ -811,20 +811,31 @@ msgstr "Items with DOIs"
 msgid "doi.manager.settings.enableFor"
 msgstr "{$objects} will be assigned a DOI"
 
+msgid "doi.manager.settings.doiPrefix.required"
+msgstr "A DOI prefix is required"
+
 msgid "doi.manager.settings.doiSuffix"
 msgstr "DOI Suffix"
 
+msgid "doi.manager.settings.doiSuffix.pattern"
+msgstr "DOI Suffix"
+
+msgid "doi.manager.settings.doiSuffix.custom"
+msgstr "Custom DOI Suffix Pattern"
+
+#, fuzzy
 msgid "doi.manager.settings.doiSuffix.description"
-msgstr "A DOI suffix can take any form, but must be unique among all publishing objects with the same DOI prefix assigned:"
+msgstr "DOIs can be generated automatically so that editors do not need to manually create or edit DOIs.<br><br>"
+"When customizing the DOI suffix, it must be unique among all of the publishing objects with the same DOI prefix. Any custom configuration should be carefully tested. When in doubt, instead use the automatic DOI generation setting, which will ensure a valid, unique DOI is assigned every time."
 
 msgid "doi.manager.settings.doiSuffixDefault"
-msgstr "Use default pattern."
+msgstr "Generate unique DOIs automatically."
 
 msgid "doi.manager.settings.doiSuffixCustomIdentifier"
 msgstr "Enter an individual DOI suffix for each published item. You'll find DOI input fields on the DOI Management page."
 
-msgid "doi.manager.settings.doiSuffixLegacyUser"
-msgstr "Previously available custom, user-defined pattern. No longer in use."
+msgid "doi.manager.settings.doiSuffixUserDefined"
+msgstr "Generate DOIs according to a customized suffix pattern."
 
 msgid "doi.manager.settings.registrationAgency"
 msgstr "Registration Agency"
@@ -2573,3 +2584,8 @@ msgstr "Review Reminder (Automated)"
 
 msgid "mailable.reviewRemindAuto.description"
 msgstr "This email is automatically sent when a reviewer has not completed their review by the due date."
+msgid "doi.manager.settings.doiSuffix"
+msgstr "Generate DOIs"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr "Never generate DOIs. An editor will manually add a DOI to each published item."

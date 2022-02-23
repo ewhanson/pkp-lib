@@ -2246,3 +2246,17 @@ msgstr "Mottagarens eller mottagarnas fullständiga namn"
 
 msgid "emailTemplate.variable.context.passwordLostUrl"
 msgstr "URL till en sida där användaren kan återställa sitt lösenord"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr "Ett DOI-suffix kan ha vilket format som helst, men måste vara unikt bland de publiceringsobjekt som tilldelats samma DOI-prefix:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Använd default-mönster."
+
+msgid "doi.manager.settings.doiSuffix"
+msgstr "DOI-suffix"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr ""
+"Ange ett DOI-suffix för varje enskilt objekt. Det finns ett DOI-fält på "
+"varje objekts metadata-sida."

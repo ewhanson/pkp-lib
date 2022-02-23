@@ -2251,3 +2251,11 @@ msgstr "LỖI:"
 
 msgid "plugins.importexport.common.error.unknownContext"
 msgstr "Đường dẫn tạp chí được chỉ định, \"{$contextPath}\", không tồn tại."
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr ""
+"Hậu tố DOI có thể có bất kỳ dạng nào, nhưng phải là duy nhất trong số tất cả "
+"các đối tượng xuất bản có cùng tiền tố DOI được gán:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Sử dụng các mẫu mặc định."

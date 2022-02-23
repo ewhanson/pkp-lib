@@ -1721,3 +1721,9 @@ msgstr "FOUT:"
 
 msgid "plugins.importexport.common.error.unknownContext"
 msgstr "Het opgegeven pad \"{$contextPath}\" bestaat niet."
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr "Een DOI achtervoegsel kan iedere gewenste vorm hebben, maar moet uniek zijn tussen alle objecten met hetzelfde DOI voorvoegsel:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Gebruik standaard patronen."

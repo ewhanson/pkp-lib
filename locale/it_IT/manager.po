@@ -2389,3 +2389,11 @@ msgstr "Sì, invia una copia a {$email}"
 
 msgid "manager.setup.notifications.copySubmissionAckPrimaryContact"
 msgstr "Notificare il contatto principale"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr ""
+"Il suffisso DOI può avere qualunque forma, ma deve essere uniforme per tutti "
+"gli elementi  pubblicato con lo stesso prefisso DOI:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Usa i pattern di default."

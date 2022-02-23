@@ -38,7 +38,7 @@ abstract class Context extends \PKP\core\DataObject
     public const SETTING_ENABLE_DOIS = 'enableDois';
     public const SETTING_ENABLED_DOI_TYPES = 'enabledDoiTypes';
     public const SETTING_DOI_PREFIX = 'doiPrefix';
-    public const SETTING_CUSTOM_DOI_SUFFIX_TYPE = 'customDoiSuffixType';
+    public const SETTING_DOI_SUFFIX_TYPE = 'doiSuffixType';
     public const SETTING_CONFIGURED_REGISTRATION_AGENCY = 'registrationAgency';
     public const SETTING_NO_REGISTRATION_AGENCY = 'none';
     public const SETTING_DOI_CREATION_TIME = 'doiCreationTime';
@@ -65,7 +65,7 @@ abstract class Context extends \PKP\core\DataObject
             return false;
         }
 
-        return in_array($doiType, $this->getData(Context::SETTING_ENABLED_DOI_TYPES));
+        return in_array($doiType, $this->getData(Context::SETTING_ENABLED_DOI_TYPES) ?? []);
     }
 
     /**

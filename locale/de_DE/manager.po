@@ -2323,3 +2323,18 @@ msgstr "Autorennamen in Form einer verkürzten Zeichenfolge"
 
 msgid "emailTemplate.variable.site.siteContactEmail"
 msgstr "E-Mailadresse des Hauptkontaktes der Webseite"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr "Ein DOI-Suffix kann in beliebiger Form sein, muss aber eindeutig unter allen Publikationsobjekten, denen derselbe DOI-Präfix zugewiesen wird:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Die Standardmuster benutzen."
+
+msgid "doi.manager.settings.doiSuffix"
+msgstr "DOI-Suffix"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr ""
+"Ein individuelles DOI-Suffix für jede Publikation eingeben. Ihnen wird in "
+"diesem Fall ein weiteres Feld zur Eintragung der DOI auf den Metadaten-"
+"Seiten jeder Publikation zur Verfügung gestellt."

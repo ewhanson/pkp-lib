@@ -2374,3 +2374,19 @@ msgstr "Yeni Tartışma Mesajı"
 
 msgid "emailTemplate.variable.site.siteContactEmail"
 msgstr "Birincil iletişim kişisinin e-postası"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr ""
+"Bir DOI son ek dosyası herhangi bir biçimi alabilir, fakat tüm yayınlanmış "
+"nesneler arasında aynı DOI ön eki almışlar arasında tekil olmalıdır:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "varsayılan örneği/şablonu kullan."
+
+msgid "doi.manager.settings.doiSuffix"
+msgstr "DOI Son eki"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr ""
+"Yayınlanan her öğe için ayrı bir DOI son eki girin. Her bir öğenin üst veri "
+"sayfasında ek bir DOI giriş alanı bulacaksınız."

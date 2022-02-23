@@ -2541,3 +2541,19 @@ msgstr "El nom complet del destinatari/ària o tots els destinataris/àries"
 
 msgid "emailTemplate.variable.context.passwordLostUrl"
 msgstr "L'URL a una pàgina perquè l'usuari/ària pugui recuperar la contrasenya"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr ""
+"El sufix DOI pot tenir qualsevol forma, però ha de ser únic entre tots els "
+"objectes publicables amb el mateix prefix DOI assignat:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Utilitzar patrons predeterminats."
+
+msgid "doi.manager.settings.doiSuffix"
+msgstr "Sufix DOI"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr ""
+"Introduïu un sufix DOI propi per a cada element publicat. Trobareu un camp "
+"d'entrada DOI addicional a la pàgina de metadades de cada element."

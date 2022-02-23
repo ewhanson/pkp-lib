@@ -2417,3 +2417,19 @@ msgstr "O nome da editorial aparecerá na sección \"Sobre a Revista\"."
 
 msgid "manager.setup.publishing"
 msgstr "Detalles da publicación"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr ""
+"Un sufixo DOI pode adoptar calquera forma, pero debe ser único entre todos "
+"os obxectos da publicación co mesmo prefixo DOI asignado:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Usar padróns por defecto."
+
+msgid "doi.manager.settings.doiSuffix"
+msgstr "Sufixo do DOI"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr ""
+"Introduza un sufixo DOI individual para cada elemento publicado. Atoparás un "
+"campo de entrada DOI adicional na páxina de metadatos de cada elemento."

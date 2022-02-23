@@ -2180,3 +2180,17 @@ msgstr "Ilmoita pääasialliselle yhteyshenkilölle"
 
 msgid "manager.setup.submissionsNotifications"
 msgstr "Ilmoitukset"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr "DOI-suffiksi voi olla missä tahansa muodossa, mutta sen täytyy olla uniikki kaikkien julkaisun objektien joukossa, joille on määritelty sama DOI-prefiksi:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Käytä oletusmuotoiluja."
+
+msgid "doi.manager.settings.doiSuffix"
+msgstr "DOI-suffiksi"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr ""
+"Anna yksilöllinen DOI-suffiksi jokaiselle julkaistulle kohteelle. Jokaisen "
+"kohteen metatietosivulla on lisäkenttä DOI:n syöttämistä varten."

@@ -2388,3 +2388,17 @@ msgstr "El nombre completo del destinatario/a o todos los destinatarios/as"
 
 msgid "emailTemplate.variable.context.passwordLostUrl"
 msgstr "La URL a una página para que el usuario/a pueda recuperar la contraseña"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr "El sufijo DOI puede tomar cualquier forma, pero debe ser único entre todos los objetos de publicación con el mismo prefijo DOI asignado:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Usar patrones por defecto."
+
+msgid "doi.manager.settings.doiSuffix"
+msgstr "Sufijo del DOI"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr ""
+"Ingrese un sufijo DOI individual por cada elemento publicado. Encontrará un "
+"campo de entrada DOI adicional en la página de metadatos de cada elemento."

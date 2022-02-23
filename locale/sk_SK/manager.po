@@ -23,3 +23,11 @@ msgstr "Podrobnosti o publikovaní"
 msgid "manager.setup.publishingDescription"
 msgstr ""
 "Názov organizácie vydávajúcej časopis bude zobrazený v časti O časopise."
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr ""
+
+"Suffix DOI môže mať akúkoľvek formu, ale musí byť jedinečný medzi všetkými "
+"publikovanými objektami s rovnakým prefixom DOI:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Použiť predvolené vzory."

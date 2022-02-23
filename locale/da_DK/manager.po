@@ -2409,3 +2409,17 @@ msgstr "Ny besked under drøftelser"
 
 msgid "emailTemplate.variable.site.siteContactEmail"
 msgstr "E-mail på webstedets primære kontaktperson"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr "Et DOI-suffiks kan antage en hvilken som helst form, men det skal være unikt for hvert enkelt udgivet element under samme DOI-præfiksgruppe:"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Anvend standardformaterne."
+
+msgid "doi.manager.settings.doiSuffix"
+msgstr "DOI-suffiks"
+
+msgid "doi.manager.settings.doiSuffixCustomIdentifier"
+msgstr ""
+"Indtast et individuelt DOI-suffiks til hver publiceret element. Du finder et "
+"supplerende DOI-indtastningsfelt på hvert elements metadataside."

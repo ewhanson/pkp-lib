@@ -2491,3 +2491,11 @@ msgstr "Notifications"
 
 msgid "manager.emails.otherTemplates"
 msgstr "Autres modèles"
+
+msgid "doi.manager.settings.doiSuffix.description"
+msgstr ""
+"Un suffixe DOI peut prendre n'importe quelle forme, mais doit être unique au "
+"sein de l'ensemble des objets publiés avec le même préfixe :"
+
+msgid "doi.manager.settings.doiSuffixDefault"
+msgstr "Utiliser les modèles par défaut."
