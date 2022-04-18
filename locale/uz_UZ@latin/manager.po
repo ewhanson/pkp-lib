@@ -22,3 +22,10 @@ msgstr ""
 
 msgid "doi.manager.settings.doiSuffixDefault"
 msgstr "Standart naqshlardan foydalaning."
+
+#, fuzzy
+msgid "doi.manager.settings.doiPrefix.description"
+msgstr ""
+"DOI prefiksi ro'yxatga olish agentliklari tomonidan tayinlanadi (masalan, "
+"<ahref=\"http://www.crossref.org\" target=\"_new\"> Crossref </a>) va "
+"10.xxxx formatida (masalan, 10.1234):"

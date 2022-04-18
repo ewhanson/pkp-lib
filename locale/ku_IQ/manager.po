@@ -566,3 +566,10 @@ msgstr ""
 
 msgid "doi.manager.settings.doiSuffixDefault"
 msgstr "ڕێکخستنە بنەڕەتییەکان بەکار بهێنە."
+
+#, fuzzy
+msgid "doi.manager.settings.doiPrefix.description"
+msgstr ""
+"پێشگری ناسێنەری سەرچاوە دیجیتاڵییەکان لە لایەن ئاژانسە تۆمارکراوەکان ئەرکدار "
+"کراوە (بۆ نمونە. <a href=\"http://www.crossref.org\" target=\"_new\""
+">Crossref</a>) ئەمەش بەم جۆرە ڕێکخستنەیە 10.xxxx (وەک 10.1234):"

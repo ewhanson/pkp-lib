@@ -2324,3 +2324,7 @@ msgstr ""
 
 msgid "doi.manager.settings.doiSuffixDefault"
 msgstr "Usar padrão por omissão."
+
+#, fuzzy
+msgid "doi.manager.settings.doiPrefix.description"
+msgstr "O prefixo DOI é atribuído pelas agências de registo (ex: <a href=\"http://www.crossref.org\" target=\"_new\">Crossref</a>) e é definido no formato 10.xxxx (ex. 10.1234):"

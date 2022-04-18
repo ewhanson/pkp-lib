@@ -1239,3 +1239,7 @@ msgstr "DOI sufiks može biti u bilo kojoj formi, ali mora biti jedinstven među
 
 msgid "doi.manager.settings.doiSuffixDefault"
 msgstr "Koristite predviđene obrasce."
+
+#, fuzzy
+msgid "doi.manager.settings.doiPrefix.description"
+msgstr "DOI prefiks dodeljuje registraciona agencija (npr. <a href=\"http://www.crossref.org\" target=\"_new\">Crossref</a>) i u formatu je 10.xxxx (npr. 10.1234):"

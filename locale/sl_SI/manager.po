@@ -2342,5 +2342,5 @@ msgstr "Uporabi privzet vzorec."
 msgid "doi.manager.settings.doiSuffix"
 msgstr "Pripona DOI"
 
-msgid "doi.manager.settings.doiSuffixCustomIdentifier"
-msgstr "Vnesi individualno pripono DOI za vsak objavljen element. Na vsaki metapodatkovni strani posameznega elementa boste našli dodatno polje za vnos DOI."
+msgid "doi.manager.settings.doiPrefix.description"
+msgstr "DOI predpono dodeli registracijska agencija (npr. <a href=\"http://www.crossref.org\" target=\"_new\">Crossref</a>) in je oblike 10.xxxx (npr. 10.1234):"

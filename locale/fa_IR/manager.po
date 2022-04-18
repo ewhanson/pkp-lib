@@ -1502,3 +1502,7 @@ msgstr "پشوند DOI میتواند در هر فرمتی باشد فقط با�
 
 msgid "doi.manager.settings.doiSuffixDefault"
 msgstr "استفاده از الگوی پیشفرض"
+
+#, fuzzy
+msgid "doi.manager.settings.doiPrefix.description"
+msgstr "پیشوند DOI توسط مراجع ثبت کننده اختصاص داده می شود (برای مثال <a href=\"http://www.crossref.org\" target=\"_new\">Crossref</a>) و فرمت آن به صورت 10.xxxx می باشد (مانند 10.1234)"

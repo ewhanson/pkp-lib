@@ -769,9 +769,6 @@ msgstr "Setup"
 msgid "manager.setup.dois.registration"
 msgstr "Registration"
 
-msgid "manager.setup.enableDois.enable"
-msgstr "Enable DOIs"
-
 msgid "doi.manager.settings.doiPrefix"
 msgstr "DOI Prefix"
 
@@ -782,19 +779,19 @@ msgid "doi.manager.setup.automaticDeposit.enable"
 msgstr "Enable automatic depositing"
 
 msgid "doi.manager.setup.automaticDeposit.description"
-msgstr "Whether DOIs should be automatically deposited with the configured registration agency."
+msgstr "The DOI registration and metadata can be automatically deposited with the selected registration agency whenever an item with a DOI is published. Automatic deposit will happen at scheduled intervals and each DOI's registration status can be monitored from the DOI management page."
 
 msgid "doi.manager.settings.doiPrefix.description"
-msgstr "This is assigned by a DOI registration agency, such as <a href=\"https://www.crossref.org\" target=\"_new\">Crossref</a> or <a href=\"https://datacite.org/\" target=\"new\">DataCite</a>. Example: 10.xxxx"
+msgstr "The DOI Prefix is assigned by a registration agency, such as <a href=\"https://www.crossref.org\" target=\"_new\">Crossref</a> or <a href=\"https://datacite.org/\" target=\"new\">DataCite</a>. Example: 10.xxxx"
 
 msgid "doi.manager.settings.doiPrefixPattern"
-msgstr "The DOI prefix is required and must be in the form 10.xxxx."
+msgstr "The DOI prefix is required and must be in the the following format: 10.xxxx."
 
 msgid "doi.manager.settings.doiCreationTime.label"
-msgstr "Automatic DOI Creation"
+msgstr "Automatic DOI Assignment"
 
 msgid "doi.manager.settings.doiCreationTime.description"
-msgstr "At what point of the publication process should DOIs be created?"
+msgstr "When should a submission be assigned a DOI?"
 
 msgid "doi.manager.settings.doiCreationTime.publication"
 msgstr "Upon publication"
@@ -808,14 +805,11 @@ msgstr "DOI Prefix"
 msgid "doi.manager.settings.doiObjects"
 msgstr "Items with DOIs"
 
-msgid "doi.manager.settings.enableFor"
-msgstr "{$objects} will be assigned a DOI"
-
 msgid "doi.manager.settings.doiPrefix.required"
 msgstr "A DOI prefix is required"
 
 msgid "doi.manager.settings.doiSuffix"
-msgstr "DOI Suffix"
+msgstr "DOI Format"
 
 msgid "doi.manager.settings.doiSuffix.pattern"
 msgstr "DOI Suffix"
@@ -825,17 +819,13 @@ msgstr "Custom DOI Suffix Pattern"
 
 #, fuzzy
 msgid "doi.manager.settings.doiSuffix.description"
-msgstr "DOIs can be generated automatically so that editors do not need to manually create or edit DOIs.<br><br>"
-"When customizing the DOI suffix, it must be unique among all of the publishing objects with the same DOI prefix. Any custom configuration should be carefully tested. When in doubt, instead use the automatic DOI generation setting, which will ensure a valid, unique DOI is assigned every time."
+msgstr "Select the format to use when the application generates a DOI."
 
 msgid "doi.manager.settings.doiSuffixDefault"
-msgstr "Generate unique DOIs automatically."
-
-msgid "doi.manager.settings.doiSuffixCustomIdentifier"
-msgstr "Enter an individual DOI suffix for each published item. You'll find DOI input fields on the DOI Management page."
+msgstr "Default"
 
 msgid "doi.manager.settings.doiSuffixUserDefined"
-msgstr "Generate DOIs according to a customized suffix pattern."
+msgstr "Custom pattern (not recommended)"
 
 msgid "doi.manager.settings.registrationAgency"
 msgstr "Registration Agency"
@@ -2584,8 +2574,3 @@ msgstr "Review Reminder (Automated)"
 
 msgid "mailable.reviewRemindAuto.description"
 msgstr "This email is automatically sent when a reviewer has not completed their review by the due date."
-msgid "doi.manager.settings.doiSuffix"
-msgstr "Generate DOIs"
-
-msgid "doi.manager.settings.doiSuffixCustomIdentifier"
-msgstr "Never generate DOIs. An editor will manually add a DOI to each published item."

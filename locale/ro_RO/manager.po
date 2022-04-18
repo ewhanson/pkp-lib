@@ -2316,3 +2316,10 @@ msgstr ""
 
 msgid "doi.manager.settings.doiSuffixDefault"
 msgstr "Utilizați modele implicite."
+
+#, fuzzy
+msgid "doi.manager.settings.doiPrefix.description"
+msgstr ""
+"Prefixul DOI este atribuit de agențiile de înregistrare(de ex. <a href=\""
+"http://www.crossref.org\" target=\"_new\">Crossref</a>) și are formatul "
+"10.xxxx (de ex. 10.1234):"

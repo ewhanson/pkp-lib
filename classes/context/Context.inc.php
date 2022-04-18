@@ -16,11 +16,10 @@
 namespace PKP\context;
 
 use APP\core\Application;
+use APP\plugins\IDoiRegistrationAgency;
 use Illuminate\Support\Arr;
 use PKP\config\Config;
 use PKP\facades\Locale;
-use APP\plugins\IDoiRegistrationAgency;
-use PKP\plugins\Plugin;
 use PKP\plugins\PluginRegistry;
 use PKP\statistics\PKPStatisticsHelper;
 
@@ -40,7 +39,7 @@ abstract class Context extends \PKP\core\DataObject
     public const SETTING_DOI_PREFIX = 'doiPrefix';
     public const SETTING_DOI_SUFFIX_TYPE = 'doiSuffixType';
     public const SETTING_CONFIGURED_REGISTRATION_AGENCY = 'registrationAgency';
-    public const SETTING_NO_REGISTRATION_AGENCY = 'none';
+    public const SETTING_NO_REGISTRATION_AGENCY = null;
     public const SETTING_DOI_CREATION_TIME = 'doiCreationTime';
     public const SETTING_DOI_AUTOMATIC_DEPOSIT = 'automaticDoiDeposit';
 

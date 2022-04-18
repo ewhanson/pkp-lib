@@ -1727,3 +1727,7 @@ msgstr "Een DOI achtervoegsel kan iedere gewenste vorm hebben, maar moet uniek z
 
 msgid "doi.manager.settings.doiSuffixDefault"
 msgstr "Gebruik standaard patronen."
+
+#, fuzzy
+msgid "doi.manager.settings.doiPrefix.description"
+msgstr "Het DOI voorvoegsel wordt toegekend door de registrerende instantie (bv. <a href=\"http://www.crossref.org\" target=\"_new\">Crossref</a>) en heeft als format 10.xxxx (bv. 10.1234):"

@@ -2259,3 +2259,10 @@ msgstr ""
 
 msgid "doi.manager.settings.doiSuffixDefault"
 msgstr "Sử dụng các mẫu mặc định."
+
+#, fuzzy
+msgid "doi.manager.settings.doiPrefix.description"
+msgstr ""
+"Tiền tố DOI được cấp bởi các cơ quan đăng ký (ví dụ: <a href=\""
+"http://www.crossref.org\" target=\"_new\">Crossref</a>) và có định dạng "
+"10.xxxx (ví dụ: 10.1234):"

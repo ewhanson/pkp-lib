@@ -2219,3 +2219,10 @@ msgstr ""
 
 msgid "doi.manager.settings.doiSuffixDefault"
 msgstr "استعمل الأنماط الافتراضية."
+
+#, fuzzy
+msgid "doi.manager.settings.doiPrefix.description"
+msgstr ""
+"إن معرف المكون الرقمي يتم تعيينه من قبل وكالات التسجيل (كما في <a href=\""
+"http://www.crossref.org\" target=\"_new\">Crossref</a>) وهو بالتنسيق الآتي  "
+"10.xxxx (مثلاً 10.1234):"

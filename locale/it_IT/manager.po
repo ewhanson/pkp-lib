@@ -2397,3 +2397,7 @@ msgstr ""
 
 msgid "doi.manager.settings.doiSuffixDefault"
 msgstr "Usa i pattern di default."
+
+#, fuzzy
+msgid "doi.manager.settings.doiPrefix.description"
+msgstr "Il prefisso DOI è assegnato dalle agenzie di registrazione (es. <a href=\"http://www.medra.org\" target=\"_new\">MeDRA</a>) ed è in formato 10.xxxx (es. 10.1234):"

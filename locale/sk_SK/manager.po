@@ -31,3 +31,10 @@ msgstr ""
 
 msgid "doi.manager.settings.doiSuffixDefault"
 msgstr "Použiť predvolené vzory."
+
+#, fuzzy
+msgid "doi.manager.settings.doiPrefix.description"
+msgstr ""
+"Prefix DOI je pridelovaný registračnými agentúrami (napr. <a href=\""
+"http://www.crossref.org\" target=\"_new\">Crossref</a>) a je vo formáte "
+"10.xxxx (napr. 10.1234):"

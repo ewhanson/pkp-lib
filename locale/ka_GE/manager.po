@@ -2408,3 +2408,10 @@ msgstr ""
 
 msgid "doi.manager.settings.doiSuffixDefault"
 msgstr "ნაგულისხმევი შაბლონის გამოყენება."
+
+#, fuzzy
+msgid "doi.manager.settings.doiPrefix.description"
+msgstr ""
+"DOI პრეფიქსი ენიჭება სარეგისტრაციო სააგენტოს მიერ (მაგალითად, <a href=\""
+"http://www.crossref.org\" target=\"_new\">Crossref</a>) და წარმოდგენილია "
+"10.xxxx ფორმატში (მაგალითად, 10.1234):"

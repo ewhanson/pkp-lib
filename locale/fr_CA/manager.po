@@ -2208,3 +2208,10 @@ msgstr ""
 
 msgid "doi.manager.settings.doiSuffixDefault"
 msgstr "Utiliser les modèles par défaut."
+
+#, fuzzy
+msgid "doi.manager.settings.doiPrefix.description"
+msgstr ""
+"Le préfixe DOI est attribué par des agences (tel que <a href=\""
+"http://www.crossref.org\" target=\"_new\">Crossref</a>) et se présente sous "
+"la forme 10.xxxx (e.g. 10.1234) :"

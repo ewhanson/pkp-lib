@@ -290,7 +290,10 @@
 		},
 		"registrationAgency": {
 			"type": "string",
-			"default": "none"
+			"default": "",
+			"validation": [
+				"nullable"
+			]
 		},
 		"doiPublicationSuffixPattern": {
 			"type": "string",
