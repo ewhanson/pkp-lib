@@ -162,7 +162,7 @@ class PKPDoiHandler extends APIHandler
 
         // The contextId should always point to the requested contextId
         if ($doi->getData('contextId') !== $this->getRequest()->getContext()->getId()) {
-            return $response->withStatus(404)->withJsonError('api.dois.400.contextsNotMatched');
+            return $response->withStatus(403)->withJsonError('api.dois.400.contextsNotMatched');
         }
 
         return $response->withJson(Repo::doi()->getSchemaMap()->map($doi), 200);
@@ -248,7 +248,7 @@ class PKPDoiHandler extends APIHandler
 
         // The contextId should always point to the requested contextId
         if ($doi->getData('contextId') !== $this->getRequest()->getContext()->getId()) {
-            return $response->withStatus(403)->withJsonError('api.dois.400.contextsNotMatched');
+            return $response->withStatus(403)->withJsonError('api.dois.403.editItemOutOfContext');
         }
 
         $params = $this->convertStringsToSchema(\PKP\services\PKPSchemaService::SCHEMA_DOI, $slimRequest->getParsedBody());
@@ -281,7 +281,7 @@ class PKPDoiHandler extends APIHandler
 
         // The contextId should always point to the requested contextId
         if ($doi->getData('contextId') !== $this->getRequest()->getContext()->getId()) {
-            return $response->withStatus(403)->withJsonError('api.dois.400.contextsNotMatched');
+            return $response->withStatus(403)->withJsonError('api.dois.403.editItemOutOfContext');
         }
 
         $doiProps = Repo::doi()->getSchemaMap()->map($doi);
