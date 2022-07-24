@@ -835,6 +835,21 @@ msgstr "None"
 msgid "doi.authorization.enabledRequired"
 msgstr "You cannot call this operation without DOIs enabled."
 
+msgid "doi.manager.versions.countStatement"
+msgstr "There are {$count} versions."
+
+msgid "doi.manager.versions.view"
+msgstr "View all"
+
+msgid "doi.manager.versions.modalTitle"
+msgstr "DOIs for all versions"
+
+msgid "doi.manager.saveDois"
+msgstr "Save changes"
+
+msgid "doi.manager.editDois"
+msgstr "Edit DOI(s)"
+
 msgid "manager.setup.publishing"
 msgstr "Publishing Details"
 

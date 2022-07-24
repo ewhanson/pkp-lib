@@ -22,6 +22,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\LazyCollection;
 use PKP\context\Context;
+use PKP\core\DataObject;
 use PKP\Jobs\Doi\DepositSubmission;
 use PKP\plugins\HookRegistry;
 use PKP\services\PKPSchemaService;
@@ -260,7 +261,7 @@ abstract class Repository
         $this->edit($doi, $editParams);
     }
 
-    /**
+	/**
      * Schedules DOI deposits with the active registration agency for all valid and
      * unregistered/stale publication items. Items are added as a queued job to be
      * completed asynchronously.
@@ -296,7 +297,29 @@ abstract class Repository
         }
     }
 
-    /**
+	/**
+	 * Remove a DOI object when it is no longer referenced anywhere
+	 */
+	public function removeDanglingObjects(int $doiId) : void
+	{
+		$publicationCount = Repo::publication()->getIds(
+			Repo::publication()
+				->getCollector()
+				->filterByDoiIds([$doiId])
+		)->count();
+
+		$galleyCount = Repo::galley()->getIds(
+			Repo::galley()
+				->getCollector()
+				->filterByDoiIds([$doiId])
+		)->count();
+
+		if ($publicationCount === 0 && $galleyCount === 0) {
+			Repo::doi()->delete(Repo::doi()->get($doiId));
+		}
+	}
+
+	/**
      * Creates an eight character DOI suffix
      *
      * @return string
@@ -333,6 +356,22 @@ abstract class Repository
      */
     abstract public function getDoisForSubmission(int $submissionId): array;
 
+	/**
+	 * Retrieves an application-specific pubObject based on the type as a string
+	 *
+	 * @param string $pubObjectType The object type name passed down from the front end. Will be application specific, e.g. 'article' or 'preprint' instead of 'publication'
+	 * @return DataObject|null Will be one of the application-specific pubObjects, e.g. Publication, ArticleGalley, etc.
+	 */
+	abstract public function getPubObjectFromType(string $pubObjectType, int $pubObjectId) : ?DataObject;
+
+	/**
+	 * Updates the DOI reference for an application-specific pubObject. Can be removed by setting doiId to null
+	 *
+	 * @param DataObject $pubObject Application-specific pubObject, e.g. Publication, ArticleGalley, etc.
+	 * @param string $pubObjectType The object type name passed down from the front end. Will be application specific, e.g. 'article' or 'preprint' instead of 'publication'
+	 * @param int|null $doiId Setting to null will remove doiId association
+	 */
+	abstract public function updatePubObjectDoiFromType(DataObject $pubObject, string $pubObjectType, ?int $doiId) : void;
     /**
      * Compose final DOI and save to database
      *

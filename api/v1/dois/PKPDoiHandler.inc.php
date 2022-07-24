@@ -260,11 +260,36 @@ class PKPDoiHandler extends APIHandler
             return $response->withStatus(400)->withJson($errors);
         }
 
-        Repo::doi()->edit($doi, $params);
+		$pubObjectType = $slimRequest->getParsedBodyParam('pubObjectType');
+		$pubObjectId = $slimRequest->getParsedBodyParam('pubObjectId');
 
-        $doi = Repo::doi()->get($doi->getId());
+		// Default behaviour, only edits DOI
+		if (empty($pubObjectType) && empty($pubObjectId)) {
+			Repo::doi()->edit($doi, $params);
+			$doi = Repo::doi()->get($doi->getId());
 
-        return $response->withJson(Repo::doi()->getSchemaMap()->map($doi), 200);
+			return $response->withJson(Repo::doi()->getSchemaMap()->map($doi), 200);
+		}
+
+		// If there is a pubObjectType and pubObjectId, we want to copy the existing DOI and create a new DOI and
+		// assign it to the pubObject. This prevents data loss when a DOI object is assigned to more than one pubObject.
+
+		// Check pubObject for doiId
+		$pubObject = Repo::doi()->getPubObjectFromType($pubObjectType, $pubObjectId);
+		if ($pubObject->getData('doiId') != $doi->getId()) {
+			return $response->withStatus(404)->withJsonError('api.dois.404.pubObjectNotFound');
+		}
+
+		// Copy DOI object data
+		$newDoi = clone $doi;
+		$newDoi->unsetData('id');
+		$newDoi->setAllData(array_merge($newDoi->getAllData(), $params));
+		$newDoiId = Repo::doi()->add($newDoi);
+
+		Repo::doi()->updatePubObjectDoiFromType($pubObject ,$pubObjectType, $newDoiId);
+		Repo::doi()->removeDanglingObjects($doi->getId());
+
+		return $response->withJson(Repo::doi()->getSchemaMap()->map($newDoi), 200);
     }
 
     /**
@@ -287,9 +312,29 @@ class PKPDoiHandler extends APIHandler
 
         $doiProps = Repo::doi()->getSchemaMap()->map($doi);
 
-        Repo::doi()->delete($doi);
+		$pubObjectType = $slimRequest->getParsedBodyParam('pubObjectType');
+		$pubObjectId = $slimRequest->getParsedBodyParam('pubObjectId');
 
-        return $response->withJson($doiProps, 200);
+		// Default behaviour, directly delete DOI
+		if (empty ($pubObjectType) && empty($pubObjectId)) {
+			Repo::doi()->delete($doi);
+
+			return $response->withJson($doiProps, 200);
+		}
+
+		// If there is a pubObjectType and pubObjectId, we want to make sure we're not accidentally deleting
+		// DOIs for more than one pubObject. We remove the doiId from the pubObject then check if it's in use
+		// anywhere else before removing the DOI directly.
+
+		$pubObject = Repo::doi()->getPubObjectFromType($pubObjectType, $pubObjectId);
+		if ($pubObject->getData('doiId') != $doi->getId()) {
+			return $response->withStatus(404)->withJsonError('api.dois.404.pubObjectNotFound');
+		}
+
+		Repo::doi()->updatePubObjectDoiFromType($pubObject, $pubObjectType, null);
+		Repo::doi()->removeDanglingObjects($doi->getId());
+
+		return $response->withJson($doiProps, 200);
     }
 
     /**
