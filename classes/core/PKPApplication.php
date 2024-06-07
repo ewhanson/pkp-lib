@@ -33,6 +33,7 @@ use PKP\facades\Locale;
 use PKP\security\Role;
 use PKP\site\VersionDAO;
 use PKP\submission\RepresentationDAOInterface;
+use Spatie\Ignition\Ignition;
 
 interface iPKPApplicationInfoProvider
 {
@@ -188,7 +189,7 @@ abstract class PKPApplication implements iPKPApplicationInfoProvider
         }
 
         ini_set('display_errors', Config::getVar('debug', 'display_errors', ini_get('display_errors')));
-        
+
         if (!static::isInstalled() && !PKPSessionGuard::isSessionDisable()) {
             PKPSessionGuard::disableSession();
         }
@@ -208,6 +209,13 @@ abstract class PKPApplication implements iPKPApplicationInfoProvider
             $versionDao = DAORegistry::getDAO('VersionDAO'); /** @var VersionDAO $versionDao */
             $appVersion = $versionDao->getCurrentVersion()->getVersionString();
             Registry::set('appVersion', $appVersion);
+
+            $appEnv = Config::getVar('general', 'app_env', 'production');
+            if (!empty($_SERVER['SERVER_NAME']) && $appEnv === 'development') {
+                Ignition::make()
+                    ->applicationPath(BASE_SYS_DIR)
+                    ->register(E_ERROR);
+            }
         }
     }
 

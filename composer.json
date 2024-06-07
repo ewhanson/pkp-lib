@@ -31,12 +31,13 @@
 		"wikimedia/less.php": "3.*"
 	},
 	"require-dev": {
-        "phpunit/phpunit": "~9",
-		"psy/psysh": "@stable",
+		"captainhook/captainhook": "^5.10",
+		"captainhook/plugin-composer": "^5.3",
 		"friendsofphp/php-cs-fixer": "^3.8",
 		"mockery/mockery": "^1.4",
-		"captainhook/captainhook": "^5.10",
-		"captainhook/plugin-composer": "^5.3"
+		"phpunit/phpunit": "~9",
+		"psy/psysh": "@stable",
+		"spatie/ignition": "^1.14"
 	},
 	"config": {
 		"component-dir": "lib/components",
