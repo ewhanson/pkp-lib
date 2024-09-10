@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\LazyCollection;
 use PKP\core\Core;
 use PKP\core\interfaces\CollectorInterface;
+use PKP\doi\Doi;
 use PKP\facades\Locale;
 use PKP\identity\Identity;
 use PKP\plugins\Hook;
@@ -531,7 +532,18 @@ abstract class Collector implements CollectorInterface, ViewsCount
         }
 
         // Search phrase
-        if ($keywords->count()) {
+        // Check if search phrase is a DOI, if so, include it
+        if (Doi::isValid($this->searchPhrase ?? '')) {
+            // TODO: Add check if publication/galley DOIs are enabled before searching
+            $q->whereIn(
+                's.submission_id',
+                fn  (Builder $q) => $q
+                    ->select('p.submission_id')
+                    ->from('publications as p')
+                    ->leftJoin('dois as d', 'd.doi_id', '=', 'p.doi_id')
+                    ->where('d.doi', '=', $this->searchPhrase)
+            );
+        } elseif ($keywords->count()) {
             $likePattern = DB::raw("CONCAT('%', LOWER(?), '%')");
             if(!empty($this->assignedTo)) {
                 // Holds a single random row to check whether we have any assignment

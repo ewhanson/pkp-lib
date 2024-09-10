@@ -113,6 +113,15 @@ class Doi extends DataObject
         $replace = ['%25', '%22', '%23', '%20', '%3c', '%3e', '%7b'];
         return str_replace($search, $replace, $pubId);
     }
+
+    public static function isValid(string $doi): bool
+    {
+        if (empty($doi)) {
+            return false;
+        }
+        // TODO: Regex check here
+        return true;
+    }
 }
 
 if (!PKP_STRICT_MODE) {
