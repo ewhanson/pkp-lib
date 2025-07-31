@@ -30,6 +30,7 @@ use PKP\core\PKPString;
 use PKP\security\Role;
 use PKP\userComment\relationships\UserCommentReport;
 use PKP\userComment\UserComment;
+use OpenApi\Attributes as OA;
 
 class UserCommentController extends PKPBaseController
 {
@@ -109,6 +110,7 @@ class UserCommentController extends PKPBaseController
         });
     }
 
+    #[OA\Get(path: 'comments/public')]
     /**
      * Gets the publicly accessible comments for a publication.
      * Accepts the following query parameters:

@@ -35,4 +35,12 @@ class CrosswalkFilter extends Filter
     {
         parent::__construct('metadata::' . $fromSchema . '(*)', 'metadata::' . $toSchema . '(*)');
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function &process(&$input)
+    {
+        // TODO: Implement process() method.
+    }
 }
