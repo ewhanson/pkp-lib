@@ -141,7 +141,8 @@ class Schema extends \PKP\core\maps\Schema
         ?Enumerable $decisions = null,
         bool|Collection $anonymizeReviews = false,
         ?Enumerable $reviewerSuggestions = null,
-        ?Enumerable $stageFiles = null
+        ?Enumerable $stageFiles = null,
+        bool $isPublic = false,
     ): array {
         $this->userGroups = $userGroups;
         $this->genres = $genres;
@@ -153,7 +154,7 @@ class Schema extends \PKP\core\maps\Schema
         $this->submissionStageFiles = $stageFiles ?? $this->getStageFilesBySubmissions(collect([$item]), [SubmissionFile::SUBMISSION_FILE_COPYEDIT]);
         $this->addAppSpecificData(collect([$item]));
 
-        return $this->mapByProperties($this->getProps(), $item, $anonymizeReviews);
+        return $this->mapByProperties($this->getProps($isPublic), $item, $anonymizeReviews);
     }
 
     /**
@@ -456,7 +457,7 @@ class Schema extends \PKP\core\maps\Schema
         if (in_array('publications', $props)) {
             $currentUserReviewAssignment = Repo::reviewAssignment()->getCollector()
                 ->filterBySubmissionIds([$submission->getId()])
-                ->filterByReviewerIds([$this->request->getUser()->getId()], true)
+                ->filterByReviewerIds([$this->request->getUser()?->getId()], true)
                 ->getMany()
                 ->first();
             $anonymize = $currentUserReviewAssignment && $currentUserReviewAssignment->getReviewMethod() === ReviewAssignment::SUBMISSION_REVIEW_METHOD_DOUBLEANONYMOUS;

@@ -188,14 +188,24 @@ class PKPSchemaService
      *
      * @return array List of property names
      */
-    public function getFullProps($schemaName)
+    public function getFullProps($schemaName, $shouldBePublic = false)
     {
         $schema = $this->get($schemaName);
 
         $propNames = [];
         foreach ($schema->properties as $propName => $propSchema) {
             if (empty($propSchema->writeOnly)) {
-                $propNames[] = $propName;
+                $canDisplay = false;
+                if ($shouldBePublic) {
+                    $canDisplay = !empty($propSchema->isPublic);
+                } else {
+                    $canDisplay = true;
+                }
+
+                if ($canDisplay) {
+                    $propNames[] = $propName;
+                }
+
             }
         }
 

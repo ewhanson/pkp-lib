@@ -162,6 +162,10 @@ class PKPSubmissionController extends PKPBaseController
         Role::ROLE_ID_ASSISTANT
     ];
 
+    public array $publicAccessRoutes = [
+        'getPublic',
+    ];
+
     /**
      * @copydoc \PKP\core\PKPBaseController::getHandlerPath()
      */
@@ -176,8 +180,8 @@ class PKPSubmissionController extends PKPBaseController
     public function getRouteGroupMiddleware(): array
     {
         return [
-            'has.user',
             'has.context',
+            'has.user',
         ];
     }
 
@@ -404,6 +408,10 @@ class PKPSubmissionController extends PKPBaseController
                 ->name('submission.task.getMany')
                 ->whereNumber(['submissionId', 'stageId']);
         });
+
+        Route::get('{submissionId}/public', $this->getPublic(...))
+            ->name('submission.public/get')
+            ->whereNumber(['submissionId']);
     }
 
     /**
@@ -414,9 +422,10 @@ class PKPSubmissionController extends PKPBaseController
         $illuminateRequest = $args[0]; /** @var \Illuminate\Http\Request $illuminateRequest */
         $actionName = static::getRouteActionName($illuminateRequest);
 
-        $this->addPolicy(new UserRolesRequiredPolicy($request), true);
-
-        $this->addPolicy(new ContextAccessPolicy($request, $roleAssignments));
+        if (!in_array($actionName, $this->publicAccessRoutes)) {
+            $this->addPolicy(new UserRolesRequiredPolicy($request), true);
+            $this->addPolicy(new ContextAccessPolicy($request, $roleAssignments));
+        }
 
         if (in_array($actionName, $this->requiresSubmissionAccess)) {
             $this->addPolicy(new SubmissionAccessPolicy($request, $args, $roleAssignments));
@@ -600,6 +609,37 @@ class PKPSubmissionController extends PKPBaseController
         }
 
         return $collector;
+    }
+
+    public function getPublic(Request $illuminateRequest): JsonResponse
+    {
+        $submissionId = (int) $illuminateRequest->route('submissionId');
+        $submission = Repo::submission()->get($submissionId);
+
+        if (!$submission) {
+            return response()->json([
+                'error' => __('api.404.resourceNotFound'),
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        // TODO: Check if should be visible
+
+        // Get required items for submission mapping
+        $userGroups = UserGroup::withContextIds($submission->getData('contextId'))->cursor();
+
+        /** @var GenreDAO $genreDao */
+        $genreDao = DAORegistry::getDAO('GenreDAO');
+        $genres = $genreDao->getByContextId($submission->getData('contextId'))->toArray();
+
+        $mappedSubmission = Repo::submission()->getSchemaMap()->map(
+            $submission,
+            $userGroups,
+            $genres,
+            [],
+            isPublic: true,
+        );
+
+        return response()->json($mappedSubmission, Response::HTTP_OK);
     }
 
     /**
