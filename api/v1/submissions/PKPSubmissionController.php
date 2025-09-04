@@ -164,6 +164,7 @@ class PKPSubmissionController extends PKPBaseController
 
     public array $publicAccessRoutes = [
         'getPublic',
+        'getPublicationPublic',
     ];
 
     /**
@@ -181,7 +182,6 @@ class PKPSubmissionController extends PKPBaseController
     {
         return [
             'has.context',
-            'has.user',
         ];
     }
 
@@ -412,6 +412,10 @@ class PKPSubmissionController extends PKPBaseController
         Route::get('{submissionId}/public', $this->getPublic(...))
             ->name('submission.public/get')
             ->whereNumber(['submissionId']);
+
+        Route::get('{submissionId}/publications/{publicationId}/public', $this->getPublicationPublic(...))
+            ->name('submission.publication.public/get')
+            ->whereNumber(['submissionId', 'publicationId']);
     }
 
     /**
@@ -640,6 +644,39 @@ class PKPSubmissionController extends PKPBaseController
         );
 
         return response()->json($mappedSubmission, Response::HTTP_OK);
+    }
+
+    public function getPublicationPublic(Request $illuminateRequest): JsonResponse
+    {
+        $submissionId = (int) $illuminateRequest->route('submissionId');
+        $submission = Repo::submission()->get($submissionId);
+        $publication = Repo::publication()->get((int) $illuminateRequest->route('publicationId'));
+
+        if (!$publication) {
+            return response()->json([
+                'error' => __('api.404.resourceNotFound'),
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        if ($submission->getId() !== $publication->getData('submissionId')) {
+            return response()->json([
+                'error' => __('api.publications.403.submissionsDidNotMatch'),
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        $userGroups = UserGroup::withContextIds($submission->getData('contextId'))->get();
+
+        /** @var GenreDAO $genreDao */
+        $genreDao = DAORegistry::getDAO('GenreDAO');
+        $genres = $genreDao->getByContextId($submission->getData('contextId'))->toArray();
+
+        return response()->json(
+            Repo::publication()->getSchemaMap($submission, $userGroups, $genres)->map(
+                $publication,
+                isPublic: true,
+            ),
+            Response::HTTP_OK
+        );
     }
 
     /**
