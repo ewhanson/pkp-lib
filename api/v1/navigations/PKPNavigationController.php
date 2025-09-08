@@ -93,8 +93,8 @@ class PKPNavigationController extends PKPBaseController
         return response()->json([
             'id' => $navigationMenu->getId(),
             'title' => $navigationMenu->getTitle(),
-            'areaName' => $navigationMenu->getAreaName(),
-            'contextId' => $navigationMenu->getContextId(),
+            'area_name' => $navigationMenu->getAreaName(),
+            'context_id' => $navigationMenu->getContextId(),
             'items' => $formattedItems,
         ], Response::HTTP_OK);
     }
@@ -126,7 +126,6 @@ class PKPNavigationController extends PKPBaseController
                 'id' => $itemId,
                 'title' => $this->getLocalizedSetting($navigationItem, 'title', $locale),
                 'path' => $navigationItem->getPath() ?: $this->getLocalizedSetting($navigationItem, 'remoteUrl', $locale),
-                'has_content' => !empty($this->getLocalizedSetting($navigationItem, 'content', $locale)),
                 'type' => $navigationItem->getType(),
                 'sequence' => $assignment->getSequence(),
                 'children' => []
