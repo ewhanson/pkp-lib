@@ -17,7 +17,6 @@
 
 namespace PKP\API\v1\navigations;
 
-use APP\core\Application;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -52,7 +51,6 @@ class PKPNavigationController extends PKPBaseController
     {
         return [
             'has.context',
-//            'has.user',
         ];
     }
 
@@ -61,7 +59,7 @@ class PKPNavigationController extends PKPBaseController
      */
     public function getGroupRoutes(): void
     {
-        Route::get('{navigationId}/public', $this->get(...))
+        Route::get('{navigationId}/public', $this->getPublic(...))
             ->name('navigation.get')
             ->whereNumber('navigationId');
     }
@@ -69,14 +67,13 @@ class PKPNavigationController extends PKPBaseController
     /**
      * Get navigation menu by ID with formatted menu items and nesting
      */
-    public function get(Request $illuminateRequest): JsonResponse
+    public function getPublic(Request $illuminateRequest): JsonResponse
     {
         $navigationId = (int) $illuminateRequest->route('navigationId');
         $request = $this->getRequest();
         $context = $request->getContext();
-        $contextId = $context ? $context->getId() : Application::SITE_CONTEXT_ID;
-        $requestParams = $illuminateRequest->query();
-        $locale = $requestParams['locale'] ?? $context?->getPrimaryLocale() ?? 'en';
+        $contextId = $context->getId();
+        $locale = $context->getPrimaryLocale();
 
         /** @var NavigationMenuDAO */
         $navigationMenuDao = DAORegistry::getDAO('NavigationMenuDAO');
@@ -84,7 +81,7 @@ class PKPNavigationController extends PKPBaseController
 
         if (!$navigationMenu) {
             return response()->json([
-                'error' => 'Navigation menu not found with ID: ' . $navigationId
+                'error' => 'Navigation menu not found'
             ], Response::HTTP_NOT_FOUND);
         }
 
