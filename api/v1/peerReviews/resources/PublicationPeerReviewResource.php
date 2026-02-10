@@ -21,13 +21,16 @@ use APP\facades\Repo;
 use APP\publication\Publication;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Enumerable;
 use PKP\API\v1\reviews\resources\ReviewRoundAuthorResponseResource;
 use PKP\context\Context;
 use PKP\db\DAORegistry;
+use PKP\reviewForm\ReviewForm;
 use PKP\reviewForm\ReviewFormDAO;
 use PKP\reviewForm\ReviewFormElement;
 use PKP\reviewForm\ReviewFormElementDAO;
+use PKP\reviewForm\ReviewFormResponse;
 use PKP\reviewForm\ReviewFormResponseDAO;
 use PKP\submission\reviewAssignment\ReviewAssignment;
 use PKP\submission\reviewer\recommendation\ReviewerRecommendation;
@@ -45,6 +48,21 @@ class PublicationPeerReviewResource extends JsonResource
 
     /** @var Request Caches request for use in mergeWhen() checks in other private methods */
     private Request $request;
+
+    /** @var Context|null Caches context to avoid redundant fetches */
+    private ?Context $context = null;
+
+    /** @var Collection<int, ReviewForm>|null Caches review forms to avoid redundant fetches */
+    private ?Collection $reviewFormsCache = null;
+
+    /** @var Collection<int, ReviewFormElement>|null Caches review form elements to avoid redundant fetches */
+    private ?Collection $reviewFormElementsCache = null;
+
+    /** @var Collection<int, ReviewFormResponse>|null Caches review form responses to avoid redundant fetches */
+    private ?Collection $reviewFormResponsesCache = null;
+
+    /** @var Collection<int, array<string>>|null Caches reviewer comments to avoid redundant fetches */
+    private ?Collection $reviewerCommentsCache = null;
 
     public function toArray(Request $request)
     {
@@ -66,7 +84,7 @@ class PublicationPeerReviewResource extends JsonResource
      * @param Publication $publication - The publication to get data for.
      *
      */
-    private function getPublicationPeerReview(Publication $publication): Enumerable
+    private function getPublicationPeerReview(Publication $publication): Collection
     {
         $results = collect();
 
@@ -76,9 +94,14 @@ class PublicationPeerReviewResource extends JsonResource
         /** @var ReviewRoundDAO $reviewRoundDao */
         $reviewRoundDao = DAORegistry::getDAO('ReviewRoundDAO');
         $reviewRounds = $reviewRoundDao->getByPublicationIds($allAssociatedPublicationIds);
-        $context = app()->get('context')->get(
-            Repo::submission()->get($publication->getData('submissionId'))->getData('contextId')
-        );
+
+        // Cache context
+        if (!$this->context) {
+            $this->context = app()->get('context')->get(
+                Repo::submission()->get($publication->getData('submissionId'))->getData('contextId')
+            );
+        }
+        $context = $this->context;
 
         $hasMultipleRounds = $reviewRounds->getCount() > 1;
         $roundsData = collect();
@@ -136,7 +159,7 @@ class PublicationPeerReviewResource extends JsonResource
     /**
      * Get public peer review specific data for a list of review assignments.
      *
-     * @param Enumerable $assignments - The review assignments to get data for.
+     * @param Enumerable $assignments The review assignments to get data for.
      * @param Context $context The context the assignments are a part of.
      *
      */
@@ -144,6 +167,9 @@ class PublicationPeerReviewResource extends JsonResource
     {
         $this->availableReviewerRecommendations = $this->availableReviewerRecommendations ?: ReviewerRecommendation::withContextId($context->getId())->get()->keyBy('reviewerRecommendationId');
         $recommendationTypesTypeLabels = Repo::reviewerRecommendation()->getRecommendationTypeLabels();
+
+        // Preload all review form data for use in class
+        $this->preloadReviewFormData($assignments, $context);
 
         return $assignments->map(function (ReviewAssignment $assignment) use ($recommendationTypesTypeLabels, $context) {
             $ReviewForm = null;
@@ -165,6 +191,7 @@ class PublicationPeerReviewResource extends JsonResource
             }
 
             $isReviewOpen = $assignment->getReviewMethod() === ReviewAssignment::SUBMISSION_REVIEW_METHOD_OPEN;
+            /** @var ReviewerRecommendation $recommendation */
             $recommendation = $this->availableReviewerRecommendations->get($assignment->getReviewerRecommendationId());
 
             return [
@@ -174,10 +201,10 @@ class PublicationPeerReviewResource extends JsonResource
                 'reviewerAffiliation' => $isReviewOpen ? Repo::user()->get($assignment->getReviewerId())->getLocalizedAffiliation() : null,
                 'dateCompleted' => $assignment->getDateCompleted(),
                 'isReviewOpen' => $isReviewOpen,
-                // Localized text description of the reviewer recommendation(Accept Submission, Decline Submission, etc)
+                // Localized text description of the reviewer recommendation (Accept Submission, Decline Submission, etc.)
                 'reviewerRecommendationDisplayText' => $assignment->getLocalizedRecommendation(),
                 'reviewerRecommendationId' => $assignment->getReviewerRecommendationId(),
-                // Machine-readable type of the reviewer recommendation(Approved, Not Approved, Revisions Requested, etc)
+                // Machine-readable type of the reviewer recommendation (Approved, Not Approved, Revisions Requested, etc.)
                 'reviewerRecommendationTypeId' => $recommendation?->type,
                 'reviewerRecommendationTypeLabel' => $recommendation ? $recommendationTypesTypeLabels[$recommendation->type] : null,
                 'reviewForm' => $ReviewForm,
@@ -196,6 +223,82 @@ class PublicationPeerReviewResource extends JsonResource
     }
 
     /**
+     * Preload all review form data to avoid duplicate or repeat DB calls
+     *
+     * @param Enumerable<ReviewAssignment> $assignments
+     * @throws \Exception
+     */
+    private function preloadReviewFormData(Enumerable $assignments, Context $context): void
+    {
+        /** @var ReviewFormDAO $reviewFormDao */
+        $reviewFormDao = DAORegistry::getDAO('ReviewFormDAO');
+        /** @var ReviewFormElementDAO $reviewFormElementDao */
+        $reviewFormElementDao = DAORegistry::getDAO('ReviewFormElementDAO');
+        /** @var ReviewFormResponseDAO $reviewFormResponseDao */
+        $reviewFormResponseDao = DAORegistry::getDAO('ReviewFormResponseDAO');
+        /** @var SubmissionCommentDAO $submissionCommentDao */
+        $submissionCommentDao = DAORegistry::getDAO('SubmissionCommentDAO');
+
+        // Collect unique review form IDs
+        $reviewFormIds = $assignments
+            ->map(fn ($a) => $a->getReviewFormId())
+            ->filter()
+            ->unique()
+            ->values();
+
+        // Fetch all review forms
+        $this->reviewFormsCache = collect();
+        foreach ($reviewFormIds as $formId) {
+            $form = $reviewFormDao->getById($formId, Application::getContextAssocType(), $context->getId());
+            if ($form) {
+                $this->reviewFormsCache->put($formId, $form);
+            }
+        }
+
+        // Fetch all review form elements for each form
+        $this->reviewFormElementsCache = collect();
+        foreach ($reviewFormIds as $formId) {
+            $elements = $reviewFormElementDao->getByReviewFormId($formId);
+            $elementsList = collect();
+            while ($element = $elements->next()) {
+                $elementsList->push($element);
+            }
+            $this->reviewFormElementsCache->put($formId, $elementsList);
+        }
+
+        // Fetch all review form responses for all assignments
+        $this->reviewFormResponsesCache = collect();
+        foreach ($assignments as $assignment) {
+            if ($assignment->getReviewFormId()) {
+                $responses = $reviewFormResponseDao->getReviewReviewFormResponseValues($assignment->getId());
+                $this->reviewFormResponsesCache->put($assignment->getId(), $responses);
+            }
+        }
+
+        // Fetch all reviewer comments for assignments without review forms
+        $this->reviewerCommentsCache = collect();
+        foreach ($assignments as $assignment) {
+            if (!$assignment->getReviewFormId()) {
+                $comments = $submissionCommentDao->getReviewerCommentsByReviewerId(
+                    $assignment->getSubmissionId(),
+                    $assignment->getReviewerId(),
+                    $assignment->getId(),
+                    true
+                );
+
+                /** @var Collection<SubmissionComment> $commentsList */
+                $commentsList = collect();
+
+                /** @var SubmissionComment $comment */
+                while ($comment = $comments->next()) {
+                    $commentsList->push($comment->getComments());
+                }
+                $this->reviewerCommentsCache->put($assignment->getId(), $commentsList->all());
+            }
+        }
+    }
+
+    /**
      * Get all questions and responses from a review form for a given review assignment
      *
      * @param ReviewAssignment $assignment - The review assignment to get responses for.
@@ -205,21 +308,29 @@ class PublicationPeerReviewResource extends JsonResource
     {
         // PR_TODO: Review for possible private info
         $formQuestions = [];
-        /** @var ReviewFormElementDAO $reviewFormElementDao */
-        $reviewFormElementDao = DAORegistry::getDAO('ReviewFormElementDAO');
-        $reviewFormElements = $reviewFormElementDao->getByReviewFormId($assignment->getReviewFormId());
+        $reviewFormId = $assignment->getReviewFormId();
 
-        /** @var ReviewFormResponseDAO $reviewFormResponseDao */
-        $reviewFormResponseDao = DAORegistry::getDAO('ReviewFormResponseDAO');
+        $reviewForm = $this->reviewFormsCache->get($reviewFormId);
+        if (!$reviewForm) {
+            return [];
+        }
 
-        while ($reviewFormElement = $reviewFormElements->next()) {
+        $reviewFormElements = $this->reviewFormElementsCache->get($reviewFormId, collect());
+        $reviewFormResponses = $this->reviewFormResponsesCache->get($assignment->getId(), []);
+
+        foreach ($reviewFormElements as $reviewFormElement) {
             $responses = [];
-            $reviewFormResponse = $reviewFormResponseDao->getReviewFormResponse($assignment->getId(), $reviewFormElement->getId());
+            $elementId = $reviewFormElement->getId();
+            $reviewFormResponse = $reviewFormResponses[$elementId] ?? null;
+
+            if (!$reviewFormResponse) {
+                continue;
+            }
 
             // Responses for checkboxes are stored in an array, with each value representing the index of the selected option(s) from the possible responses
             if ($reviewFormElement->getElementType() == ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_CHECKBOXES) {
                 // convert each index to integer
-                $responseIndexesIntegers = array_map('intval', $reviewFormResponse->getValue());
+                $responseIndexesIntegers = array_map('intval', $reviewFormResponse);
                 $possibleResponses = $reviewFormElement->getLocalizedPossibleResponses();
 
                 // For each item in $responseIndexesIntegers, get the value at that index from the possible responses
@@ -230,14 +341,14 @@ class PublicationPeerReviewResource extends JsonResource
                 }
             } // Else if radio buttons or drop down box, the response is a single index representing the selected option
             elseif (in_array($reviewFormElement->getElementType(), [ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_RADIO_BUTTONS, ReviewFormElement::REVIEW_FORM_ELEMENT_TYPE_DROP_DOWN_BOX])) {
-                $selectedIndex = (int)$reviewFormResponse->getValue();
+                $selectedIndex = (int)$reviewFormResponse;
                 $possibleResponses = $reviewFormElement->getLocalizedPossibleResponses();
                 if (isset($possibleResponses[$selectedIndex])) {
                     $responses[] = $possibleResponses[$selectedIndex];
                 }
             } else {
                 // For other types of questions, just return the response value directly
-                $responses[] = $reviewFormResponse->getValue();
+                $responses[] = $reviewFormResponse;
             }
 
             $formQuestions[] = [
@@ -258,22 +369,6 @@ class PublicationPeerReviewResource extends JsonResource
      */
     private function getReviewAssignmentComments(ReviewAssignment $assignment): array
     {
-        $reviewerComments = [];
-        /** @var SubmissionCommentDAO $submissionCommentDao */
-        $submissionCommentDao = DAORegistry::getDAO('SubmissionCommentDAO');
-
-        $comments = $submissionCommentDao->getReviewerCommentsByReviewerId(
-            $assignment->getSubmissionId(),
-            $assignment->getReviewerId(),
-            $assignment->getId(),
-            true
-        );
-
-        /** @var SubmissionComment $comment */
-        while ($comment = $comments->next()) {
-            $reviewerComments[] = $comment->getComments();
-        }
-
-        return $reviewerComments;
+        return $this->reviewerCommentsCache->get($assignment->getId(), []);
     }
 }
