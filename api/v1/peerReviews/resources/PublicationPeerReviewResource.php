@@ -32,6 +32,7 @@ use PKP\reviewForm\ReviewFormResponseDAO;
 use PKP\submission\reviewAssignment\ReviewAssignment;
 use PKP\submission\reviewer\recommendation\ReviewerRecommendation;
 use PKP\submission\reviewRound\authorResponse\AuthorResponse;
+use PKP\submission\reviewRound\ReviewRound;
 use PKP\submission\reviewRound\ReviewRoundDAO;
 use PKP\submission\SubmissionComment;
 use PKP\submission\SubmissionCommentDAO;
@@ -99,6 +100,7 @@ class PublicationPeerReviewResource extends JsonResource
         $roundResponses = AuthorResponse::withReviewRoundIds($roundIds)->get()->groupBy('reviewRoundId');
 
         foreach ($reviewsGroupedByRoundId as $roundId => $assignments) {
+            /** @var ReviewRound $reviewRound */
             $reviewRound = $reviewRoundsKeyedById->get($roundId);
 
             $roundDisplayText = $hasMultipleRounds ? __('publication.versionStringWithRound', [
@@ -110,10 +112,16 @@ class PublicationPeerReviewResource extends JsonResource
             /** @var ?AuthorResponse $currentRoundResponse */
             $currentRoundResponse = $roundResponses->get($roundId)?->first();
 
+            $publicStatus = $reviewRound->getPublicReviewStatus($assignments);
+
             $roundsData->add([
                 'displayText' => $roundDisplayText,
                 'roundId' => $reviewRound->getData('id'),
                 'originalPublicationId' => $reviewRound->getPublicationId(),
+                'status' => $publicStatus['status']->value,
+                'dateStarted' => $publicStatus['dateStarted'],
+                'dateInProgress' => $publicStatus['dateInProgress'],
+                'dateCompleted' => $publicStatus['dateCompleted'],
                 'reviews' => $this->getReviewAssignmentPeerReviews($assignments, $context),
                 'authorResponse' => $currentRoundResponse ? new ReviewRoundAuthorResponseResource($currentRoundResponse) : null,
             ]);
@@ -169,7 +177,7 @@ class PublicationPeerReviewResource extends JsonResource
                 // Localized text description of the reviewer recommendation(Accept Submission, Decline Submission, etc)
                 'reviewerRecommendationDisplayText' => $assignment->getLocalizedRecommendation(),
                 'reviewerRecommendationId' => $assignment->getReviewerRecommendationId(),
-                // Machine readable type of the reviewer recommendation(Approved, Not Approved, Revisions Requested, etc)
+                // Machine-readable type of the reviewer recommendation(Approved, Not Approved, Revisions Requested, etc)
                 'reviewerRecommendationTypeId' => $recommendation?->type,
                 'reviewerRecommendationTypeLabel' => $recommendation ? $recommendationTypesTypeLabels[$recommendation->type] : null,
                 'reviewForm' => $ReviewForm,

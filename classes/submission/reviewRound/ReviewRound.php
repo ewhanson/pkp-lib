@@ -23,9 +23,11 @@ namespace PKP\submission\reviewRound;
 
 use APP\decision\Decision;
 use APP\facades\Repo;
+use Illuminate\Support\Enumerable;
 use PKP\security\Role;
 use PKP\stageAssignment\StageAssignment;
 use PKP\submission\reviewAssignment\ReviewAssignment;
+use PKP\submission\reviewRound\enums\PublicReviewStatus;
 
 class ReviewRound extends \PKP\core\DataObject
 {
@@ -353,5 +355,62 @@ class ReviewRound extends \PKP\core\DataObject
                 return 'editor.submission.roundStatus.returnedToReview';
             default: return null;
         }
+    }
+
+    /**
+     * Gets public review status along with relevant dates
+     *
+     * @param Enumerable<ReviewAssignment> $assignments Review assignments to include, typically only publicly visible ones
+     *
+     * @return array{status: PublicReviewStatus, dateStarted: ?string, dateInProgress: ?string, dateCompleted: ?string}
+     */
+    public function getPublicReviewStatus(Enumerable $assignments): array
+    {
+        $eligibleAssignments = $assignments->filter(
+            fn (ReviewAssignment $ra) => !$ra->getDeclined() && !$ra->getCancelled()
+        );
+
+        // Oldest date assigned
+        $dateStarted = $assignments
+            ->map(fn (ReviewAssignment $ra) => $ra->getDateAssigned())
+            ->filter()
+            ->sort()
+            ->first();
+
+        // Oldest date confirmed
+        $dateInProgress = $eligibleAssignments
+            ->map(fn (ReviewAssignment $ra) => $ra->getDateConfirmed())
+            ->filter()
+            ->sort()
+            ->first();
+
+        $isNotStarted = $eligibleAssignments->isEmpty();
+        $isComplete = $eligibleAssignments->every(fn(ReviewAssignment $ra) => $ra->getDateCompleted() !== null);
+        $isInProgress = $dateInProgress !== null;
+
+        $dateCompleted = null;
+
+        if ($isNotStarted) {
+            $status = PublicReviewStatus::NotStarted;
+        } elseif ($isComplete) {
+            $status = PublicReviewStatus::Complete;
+
+            // Most recent date completed
+            $dateCompleted = $eligibleAssignments
+                ->map(fn (ReviewAssignment $ra) => $ra->getDateCompleted())
+                ->sort()
+                ->last();
+        } elseif ($isInProgress) {
+            $status = PublicReviewStatus::InProgress;
+        } else {
+            $status = PublicReviewStatus::NotStarted;
+        }
+
+        return [
+            'status' => $status,
+            'dateStarted' => $dateStarted,
+            'dateInProgress' => $dateInProgress,
+            'dateCompleted' => $dateCompleted,
+        ];
     }
 }
