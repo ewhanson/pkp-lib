@@ -30,28 +30,61 @@ class PublicationPeerReviewSummaryResource extends JsonResource
 {
     use ReviewerRecommendationSummary;
 
+    /** @var array|null Preloaded data to excess DB queries */
+    private ?array $preloadedData = null;
+
+    /**
+     * Inject preloaded data into the resource.
+     *
+     * @param array $data Preloaded collections from repository batch loading
+     * PR_TODO: Add note about source of preloaded data
+     * 
+     * @return self
+     */
+    public function withPreloadedData(array $data): self
+    {
+        $this->preloadedData = $data;
+        return $this;
+    }
+
     public function toArray(\Illuminate\Http\Request $request)
     {
         /** @var Publication $publication */
         $publication = $this->resource;
 
-        $submission = Repo::submission()->get($publication->getData('submissionId'));
-        $contextDao = Application::getContextDAO();
-        /** @var Context $context */
-        $context = $contextDao->getById($submission->getData('contextId'));
+        if ($this->preloadedData) {
+            // Use preloaded data
+            $context = $this->preloadedData['contextsBySubmissionId']->get($publication->getData('submissionId'));
+            // PR_TODO: This isn't used in this code path.
+            $allAssociatedPublicationIds = $this->preloadedData['sourcePublicationIds']->get($publication->getId(), [$publication->getId()]);
+            $reviewRounds = $this->preloadedData['reviewRoundsByPublicationId']->get($publication->getId(), collect());
 
-        $allAssociatedPublicationIds = Repo::publication()->getWithSourcePublicationsIds([$publication->getId()])->all();
+            $reviewAssignments = collect();
+            foreach ($reviewRounds as $round) {
+                $assignments = $this->preloadedData['reviewAssignmentsByRoundId']->get($round->getId(), collect());
+                $reviewAssignments = $reviewAssignments->merge($assignments);
+            }
+        } else {
+            // Fallback to naive behavior
+            $submission = Repo::submission()->get($publication->getData('submissionId'));
+            $contextDao = Application::getContextDAO();
+            /** @var Context $context */
+            $context = $contextDao->getById($submission->getData('contextId'));
 
-        // Include reviews from the Publication's Source Publication so that reviews that are to be copied forward are accounted for.
-        $reviewAssignments = Repo::reviewAssignment()->getCollector()
-            ->filterByIsPubliclyVisible(true)
-            ->filterByPublicationIds($allAssociatedPublicationIds)
-            ->getMany();
+            $allAssociatedPublicationIds = Repo::publication()->getWithSourcePublicationsIds([$publication->getId()])->all();
 
-        /** @var ReviewRoundDAO $reviewRoundDao */
-        $reviewRoundDao = DAORegistry::getDAO('ReviewRoundDAO');
-        $reviewRounds = $reviewRoundDao->getByPublicationIds($allAssociatedPublicationIds);
-        $reviewRoundsKeyedById = collect($reviewRounds->toArray())->keyBy(fn ($rr) => $rr->getId());
+            // Include reviews from the Publication's Source Publication so that reviews that are to be copied forward are accounted for.
+            $reviewAssignments = Repo::reviewAssignment()->getCollector()
+                ->filterByIsPubliclyVisible(true)
+                ->filterByPublicationIds($allAssociatedPublicationIds)
+                ->getMany();
+
+            /** @var ReviewRoundDAO $reviewRoundDao */
+            $reviewRoundDao = DAORegistry::getDAO('ReviewRoundDAO');
+            $reviewRounds = collect($reviewRoundDao->getByPublicationIds($allAssociatedPublicationIds)->toArray());
+        }
+
+        $reviewRoundsKeyedById = $reviewRounds->keyBy(fn ($rr) => $rr->getId());
 
         $assignmentsByRound = $reviewAssignments
             ->groupBy(fn (ReviewAssignment $ra) => $ra->getReviewRoundId())

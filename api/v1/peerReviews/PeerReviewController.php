@@ -118,8 +118,10 @@ class PeerReviewController extends PKPBaseController
             ], Response::HTTP_NOT_FOUND);
         }
 
+        // Use batch loading for multiple publications
+        // PR_TODO: Explore naming convention for this
         return response()->json(
-            Repo::publication()->getPeerReviews($publications->all()),
+            Repo::publication()->getPeerReviewsWithBatchLoading($publications->all()),
             Response::HTTP_OK
         );
     }

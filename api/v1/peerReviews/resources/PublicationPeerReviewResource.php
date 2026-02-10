@@ -64,6 +64,9 @@ class PublicationPeerReviewResource extends JsonResource
     /** @var Collection<int, array<string>>|null Caches reviewer comments to avoid redundant fetches */
     private ?Collection $reviewerCommentsCache = null;
 
+    /** @var array|null Preloaded data to avoid N+1 queries in collection endpoints */
+    private ?array $preloadedData = null;
+
     public function toArray(Request $request)
     {
         $this->request = $request;
@@ -78,6 +81,21 @@ class PublicationPeerReviewResource extends JsonResource
             'reviewerRecommendationsSummary' => $publicationReviewsData->get('reviewerRecommendationsSummary'),
         ];
     }
+
+    /**
+     * Inject preloaded data into the resource.
+     *
+     * @param array $data Preloaded collections from repository batch loading.
+     * PR_TODO: Add notes about where preloaded data comes from
+     *
+     * @return self
+     */
+    public function withPreloadedData(array $data): self
+    {
+        $this->preloadedData = $data;
+        return $this;
+    }
+
     /**
      * Get public peer review data for a publication.
      *
@@ -88,39 +106,69 @@ class PublicationPeerReviewResource extends JsonResource
     {
         $results = collect();
 
-        // Check up the tree on source IDs
-        $allAssociatedPublicationIds = Repo::publication()->getWithSourcePublicationsIds([$publication->getId()]);
+        // Use preloaded data if available, otherwise fetch as before
+        if ($this->preloadedData) {
+            $allAssociatedPublicationIds = $this->preloadedData['sourcePublicationIds']->get($publication->getId(), [$publication->getId()]);
+            $reviewRounds = $this->preloadedData['reviewRoundsByPublicationId']->get($publication->getId(), collect());
+            $context = $this->preloadedData['contextsBySubmissionId']->get($publication->getData('submissionId'));
+        } else {
+            // Fallback to naive behavior for single publication requests
+            $allAssociatedPublicationIds = Repo::publication()->getWithSourcePublicationsIds([$publication->getId()]);
 
-        /** @var ReviewRoundDAO $reviewRoundDao */
-        $reviewRoundDao = DAORegistry::getDAO('ReviewRoundDAO');
-        $reviewRounds = $reviewRoundDao->getByPublicationIds($allAssociatedPublicationIds);
+            /** @var ReviewRoundDAO $reviewRoundDao */
+            $reviewRoundDao = DAORegistry::getDAO('ReviewRoundDAO');
+            $reviewRounds = collect($reviewRoundDao->getByPublicationIds($allAssociatedPublicationIds)->toArray());
 
-        // Cache context
-        if (!$this->context) {
-            $this->context = app()->get('context')->get(
-                Repo::submission()->get($publication->getData('submissionId'))->getData('contextId')
-            );
+            // Cache context to avoid redundant fetches
+            if (!$this->context) {
+                $this->context = app()->get('context')->get(
+                    Repo::submission()->get($publication->getData('submissionId'))->getData('contextId')
+                );
+            }
+            $context = $this->context;
         }
-        $context = $this->context;
 
-        $hasMultipleRounds = $reviewRounds->getCount() > 1;
+        $hasMultipleRounds = $reviewRounds->count() > 1;
         $roundsData = collect();
 
-        $reviewRoundsKeyedById = collect($reviewRounds->toArray())->keyBy(fn ($item) => $item->getId());
+        $reviewRoundsKeyedById = collect($reviewRounds)->keyBy(fn ($item) => $item->getId());
         $roundIds = $reviewRoundsKeyedById->keys()->all();
-        unset($reviewRounds);
 
-        $reviewAssignments = Repo::reviewAssignment()
-            ->getCollector()
-            ->filterByReviewRoundIds($roundIds)
-            ->filterByIsPubliclyVisible(true)
-            ->getMany();
+        if ($this->preloadedData) {
+            // Use preloaded assignments and responses
+            $reviewsGroupedByRoundId = collect();
+            foreach ($roundIds as $roundId) {
+                $assignments = $this->preloadedData['reviewAssignmentsByRoundId']->get($roundId, collect());
+                if ($assignments->isNotEmpty()) {
+                    $reviewsGroupedByRoundId->put($roundId, $assignments);
+                }
+            }
+            $reviewsGroupedByRoundId = $reviewsGroupedByRoundId->sortKeys();
 
-        $reviewsGroupedByRoundId = $reviewAssignments
-            ->groupBy(fn (ReviewAssignment $ra) => $ra->getReviewRoundId())
-            ->sortKeys();
+            $roundResponses = collect();
+            foreach ($roundIds as $roundId) {
+                $response = $this->preloadedData['authorResponsesByRoundId']->get($roundId, collect())->first();
+                if ($response) {
+                    $roundResponses->put($roundId, collect([$response]));
+                }
+            }
 
-        $roundResponses = AuthorResponse::withReviewRoundIds($roundIds)->get()->groupBy('reviewRoundId');
+            // Collect all assignments for summary
+            $reviewAssignments = $reviewsGroupedByRoundId->flatten();
+        } else {
+            // Fallback to naive fetching behavior
+            $reviewAssignments = Repo::reviewAssignment()
+                ->getCollector()
+                ->filterByReviewRoundIds($roundIds)
+                ->filterByIsPubliclyVisible(true)
+                ->getMany();
+
+            $reviewsGroupedByRoundId = $reviewAssignments
+                ->groupBy(fn (ReviewAssignment $ra) => $ra->getReviewRoundId())
+                ->sortKeys();
+
+            $roundResponses = AuthorResponse::withReviewRoundIds($roundIds)->get()->groupBy('reviewRoundId');
+        }
 
         foreach ($reviewsGroupedByRoundId as $roundId => $assignments) {
             /** @var ReviewRound $reviewRound */
@@ -165,27 +213,40 @@ class PublicationPeerReviewResource extends JsonResource
      */
     private function getReviewAssignmentPeerReviews(Enumerable $assignments, Context $context): Enumerable
     {
-        $this->availableReviewerRecommendations = $this->availableReviewerRecommendations ?: ReviewerRecommendation::withContextId($context->getId())->get()->keyBy('reviewerRecommendationId');
+        // Use preloaded recommendations if available
+        if ($this->preloadedData) {
+            $this->availableReviewerRecommendations = $this->preloadedData['reviewerRecommendationsByContextId']->get($context->getId());
+        } else {
+            $this->availableReviewerRecommendations = $this->availableReviewerRecommendations ?: ReviewerRecommendation::withContextId($context->getId())->get()->keyBy('reviewerRecommendationId');
+        }
+
         $recommendationTypesTypeLabels = Repo::reviewerRecommendation()->getRecommendationTypeLabels();
 
-        // Preload all review form data for use in class
-        $this->preloadReviewFormData($assignments, $context);
+        if (!$this->preloadedData) {
+            $this->preloadReviewFormData($assignments, $context);
+        }
 
         return $assignments->map(function (ReviewAssignment $assignment) use ($recommendationTypesTypeLabels, $context) {
             $ReviewForm = null;
             $reviewerComments = null;
 
             if ($assignment->getReviewFormId()) {
-                /** @var ReviewFormDAO $reviewFormDao */
-                $reviewFormDao = DAORegistry::getDAO('ReviewFormDAO');
-                $reviewForm = $reviewFormDao->getById($assignment->getReviewFormId(), Application::getContextAssocType(), $context->getId());
+                if ($this->preloadedData) {
+                    $reviewForm = $this->preloadedData['reviewFormsById']->get($assignment->getReviewFormId());
+                } else {
+                    /** @var ReviewFormDAO $reviewFormDao */
+                    $reviewFormDao = DAORegistry::getDAO('ReviewFormDAO');
+                    $reviewForm = $reviewFormDao->getById($assignment->getReviewFormId(), Application::getContextAssocType(), $context->getId());
+                }
 
-                $ReviewForm = [
-                    'id' => $reviewForm->getId(),
-                    'description' => $reviewForm->getLocalizedDescription(),
-                    'title' => $reviewForm->getLocalizedTitle(),
-                    'questions' => $this->getReviewFormQuestions($assignment)
-                ];
+                if ($reviewForm) {
+                    $ReviewForm = [
+                        'id' => $reviewForm->getId(),
+                        'description' => $reviewForm->getLocalizedDescription(),
+                        'title' => $reviewForm->getLocalizedTitle(),
+                        'questions' => $this->getReviewFormQuestions($assignment)
+                    ];
+                }
             } else {
                 $reviewerComments = $this->getReviewAssignmentComments($assignment);
             }
@@ -194,11 +255,22 @@ class PublicationPeerReviewResource extends JsonResource
             /** @var ReviewerRecommendation $recommendation */
             $recommendation = $this->availableReviewerRecommendations->get($assignment->getReviewerRecommendationId());
 
+            // Get reviewer affiliation from preloaded users if available
+            $reviewerAffiliation = null;
+            if ($isReviewOpen) {
+                if ($this->preloadedData) {
+                    $user = $this->preloadedData['reviewerUsersById']->get($assignment->getReviewerId());
+                    $reviewerAffiliation = $user ? $user->getLocalizedAffiliation() : null;
+                } else {
+                    $reviewerAffiliation = Repo::user()->get($assignment->getReviewerId())->getLocalizedAffiliation();
+                }
+            }
+
             return [
                 'id' => $assignment->getData('id'),
                 'reviewerId' => $isReviewOpen ? $assignment->getReviewerId() : null,
                 'reviewerFullName' => $isReviewOpen ? $assignment->getReviewerFullName() : null,
-                'reviewerAffiliation' => $isReviewOpen ? Repo::user()->get($assignment->getReviewerId())->getLocalizedAffiliation() : null,
+                'reviewerAffiliation' => $reviewerAffiliation,
                 'dateCompleted' => $assignment->getDateCompleted(),
                 'isReviewOpen' => $isReviewOpen,
                 // Localized text description of the reviewer recommendation (Accept Submission, Decline Submission, etc.)
@@ -310,13 +382,21 @@ class PublicationPeerReviewResource extends JsonResource
         $formQuestions = [];
         $reviewFormId = $assignment->getReviewFormId();
 
-        $reviewForm = $this->reviewFormsCache->get($reviewFormId);
+        // Use preloaded data if available
+        if ($this->preloadedData) {
+            $reviewForm = $this->preloadedData['reviewFormsById']->get($reviewFormId);
+            $reviewFormElements = $this->preloadedData['reviewFormElementsByFormId']->get($reviewFormId, collect());
+            $reviewFormResponses = $this->preloadedData['reviewFormResponsesByAssignmentId']->get($assignment->getId(), []);
+        } else {
+            // Fallback to cached data from `preloadReviewFormData()`
+            $reviewForm = $this->reviewFormsCache->get($reviewFormId);
+            $reviewFormElements = $this->reviewFormElementsCache->get($reviewFormId, collect());
+            $reviewFormResponses = $this->reviewFormResponsesCache->get($assignment->getId(), []);
+        }
+
         if (!$reviewForm) {
             return [];
         }
-
-        $reviewFormElements = $this->reviewFormElementsCache->get($reviewFormId, collect());
-        $reviewFormResponses = $this->reviewFormResponsesCache->get($assignment->getId(), []);
 
         foreach ($reviewFormElements as $reviewFormElement) {
             $responses = [];
@@ -369,6 +449,12 @@ class PublicationPeerReviewResource extends JsonResource
      */
     private function getReviewAssignmentComments(ReviewAssignment $assignment): array
     {
+        // Use preloaded data if available
+        if ($this->preloadedData) {
+            return $this->preloadedData['reviewerCommentsByAssignmentId']->get($assignment->getId(), []);
+        }
+
+        // Fallback to cached data
         return $this->reviewerCommentsCache->get($assignment->getId(), []);
     }
 }

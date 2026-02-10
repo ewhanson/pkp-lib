@@ -1004,6 +1004,29 @@ abstract class Repository
     }
 
     /**
+     * Get peer reviews for multiple publications with batch-loaded data.
+     * Use when fetching multiple publications.
+     *
+     * @param array $publications
+     *
+     * @return Enumerable Collection of peer review data
+     */
+    public function getPeerReviewsWithBatchLoading(array $publications): Enumerable
+    {
+        if (empty($publications)) {
+            return collect([]);
+        }
+
+        // Batch-load data from service class
+        $dataService = app(PeerReviewDataService::class);
+        $preloadedData = $dataService->loadBatchedPeerReviewData($publications);
+
+        return collect($publications)->map(function ($publication) use ($preloadedData) {
+            return (new PublicationPeerReviewResource($publication))->withPreloadedData($preloadedData);
+        });
+    }
+
+    /**
      * Returns the provided publication ID as well as any other publications
      * that reference this publication via the `source_publication_id`.
      */
