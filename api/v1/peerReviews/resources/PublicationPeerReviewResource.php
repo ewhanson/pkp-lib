@@ -19,6 +19,7 @@ namespace PKP\API\v1\peerReviews\resources;
 use APP\core\Application;
 use APP\facades\Repo;
 use APP\publication\Publication;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Enumerable;
 use PKP\API\v1\reviews\resources\ReviewRoundAuthorResponseResource;
@@ -40,8 +41,14 @@ class PublicationPeerReviewResource extends JsonResource
     use ReviewerRecommendationSummary;
 
     private ?Enumerable $availableReviewerRecommendations = null;
-    public function toArray(?\Illuminate\Http\Request $request = null)
+
+    /** @var Request Caches request for use in mergeWhen() checks in other private methods */
+    private Request $request;
+
+    public function toArray(Request $request)
     {
+        $this->request = $request;
+
         /** @var Publication $publication */
         $publication = $this->resource;
         $publicationReviewsData = $this->getPublicationPeerReview($publication);
@@ -157,10 +164,7 @@ class PublicationPeerReviewResource extends JsonResource
                 'reviewerId' => $isReviewOpen ? $assignment->getReviewerId() : null,
                 'reviewerFullName' => $isReviewOpen ? $assignment->getReviewerFullName() : null,
                 'reviewerAffiliation' => $isReviewOpen ? Repo::user()->get($assignment->getReviewerId())->getLocalizedAffiliation() : null,
-                'dateAssigned' => $assignment->getDateAssigned(),
-                'dateConfirmed' => $assignment->getDateConfirmed(),
                 'dateCompleted' => $assignment->getDateCompleted(),
-                'declined' => $assignment->getDeclined(),
                 'isReviewOpen' => $isReviewOpen,
                 // Localized text description of the reviewer recommendation(Accept Submission, Decline Submission, etc)
                 'reviewerRecommendationDisplayText' => $assignment->getLocalizedRecommendation(),
@@ -170,6 +174,15 @@ class PublicationPeerReviewResource extends JsonResource
                 'reviewerRecommendationTypeLabel' => $recommendation ? $recommendationTypesTypeLabels[$recommendation->type] : null,
                 'reviewForm' => $ReviewForm,
                 'reviewerComments' => $reviewerComments,
+                // Include non-public info when user has appropriate permissions
+                // PR_TODO: See how user role check should happen here in efficient way
+                $this->mergeWhen($this->request->user(), function () use ($assignment) {
+                    return [
+                        'dateAssigned' => $assignment->getDateAssigned(),
+                        'dateConfirmed' => $assignment->getDateConfirmed(),
+                        'declined' => $assignment->getDeclined(),
+                    ];
+                }),
             ];
         })->values();
     }
@@ -182,6 +195,7 @@ class PublicationPeerReviewResource extends JsonResource
      */
     private function getReviewFormQuestions(ReviewAssignment $assignment): array
     {
+        // PR_TODO: Review for possible private info
         $formQuestions = [];
         /** @var ReviewFormElementDAO $reviewFormElementDao */
         $reviewFormElementDao = DAORegistry::getDAO('ReviewFormElementDAO');
@@ -243,7 +257,8 @@ class PublicationPeerReviewResource extends JsonResource
         $comments = $submissionCommentDao->getReviewerCommentsByReviewerId(
             $assignment->getSubmissionId(),
             $assignment->getReviewerId(),
-            $assignment->getId()
+            $assignment->getId(),
+            true
         );
 
         /** @var SubmissionComment $comment */

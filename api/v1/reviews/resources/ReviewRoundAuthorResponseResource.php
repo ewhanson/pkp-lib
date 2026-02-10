@@ -28,23 +28,28 @@ class ReviewRoundAuthorResponseResource extends JsonResource
         /** @var AuthorResponse $reponse */
         $response = $this;
 
-        /** @var User $user */
-        $user = $this->submittedBy;
-
         $associatedAuthors = $response->associatedAuthors;
         return [
             'reviewRoundId' => $response->reviewRoundId,
             'response' => $response->authorResponse,
             'id' => $response->id,
-            'submittedByUser' => [
-                'id' => $user->getId(),
-                'fullName' => $user->getFullName(),
-            ],
             'associatedAuthors' => array_map(fn (Author $author) => [
                 'id' => $author->getId(),
                 'fullName' => $author->getFullName(),
             ], $associatedAuthors),
             'createdAt' => $response->created_at,
+            // Include non-public info when user has appropriate permissions
+            // PR_TODO: See how user role check should happen here in efficient way
+            $this->mergeWhen($request->user(), function () use ($response) {
+                /** @var User $submittedByUser */
+                $submittedByUser = $this->submittedBy;
+                return [
+                    'submittedByUser' => [
+                        'id' => $submittedByUser->getId(),
+                        'fullName' => $submittedByUser->getFullName(),
+                    ],
+                ];
+            }),
         ];
     }
 }
